@@ -66,6 +66,6 @@ set(src_dir
 add_executable(webd ${src_dir} src/main.cpp)
 
 # target_link_libraries 这个指令可以用来添加需要链接的共享库
-target_link_libraries(webd ${networker_base})
 target_link_libraries(webd ${networker_net})
+target_link_libraries(webd ${networker_base})
 target_link_libraries(webd pthread rt)

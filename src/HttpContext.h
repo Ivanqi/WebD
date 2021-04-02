@@ -1,9 +1,10 @@
 #ifndef WEBD_HTTPCONTEXT_H
 #define WEBD_HTTPCONTEXT_H
 
-#include "HttpRequest.h"
+#include "src/HttpRequest.h"
 #include "networker/net/Buffer.h"
-using networker::net::Buffer;
+using namespace networker;
+using namespace networker::net;
 
 namespace webd
 {

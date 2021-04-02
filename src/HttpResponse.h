@@ -7,7 +7,8 @@
 #include <map>
 
 using std::string;
-using networker::net::Buffer;
+// using networker::net::Buffer;
+using namespace networker::net;
 
 namespace webd
 {

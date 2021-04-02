@@ -7,8 +7,7 @@
 #include <assert.h>
 
 using std::string;
-using networker::Timestamp;
-
+using namespace networker;
 namespace webd
 {
     class HttpRequest
