@@ -4,6 +4,7 @@
 #include "networker/base/Types.h"
 
 #include <map>
+#include <stdio.h>
 #include <assert.h>
 
 using std::string;
@@ -35,6 +36,7 @@ namespace webd
             string query_;
             Timestamp receiveTime_;
             std::map<string, string> headers_;
+            std::map<string , string> paramlist_;
         
         public:
             HttpRequest()
@@ -146,7 +148,6 @@ namespace webd
                 while (!value.empty() && isspace(value[value.size() - 1])) {
                     value.resize(value.size() - 1);
                 }
-
                 headers_[field] = value;
             }
 
@@ -163,6 +164,16 @@ namespace webd
             const std::map<string, string>& headers() const
             {
                 return headers_;
+            }
+
+            void setParamlist(string key, string val) 
+            {
+                paramlist_[key] = val;
+            }
+
+            const std::map<string, string>& paramlist() const
+            {
+                return paramlist_;
             }
 
             void swap(HttpRequest& that)

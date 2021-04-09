@@ -22,6 +22,11 @@ namespace webd
         private:
             HttpRequestParseState state_;
             HttpRequest request_;
+            bool webkitfromState_{false};
+            std::string webkitChar{"WebKitForm"};
+            std::string tmpKey{""};
+            const char eqtag{'='};
+            const char ampetag{'&'};
         
         public:
             HttpContext()
@@ -55,6 +60,10 @@ namespace webd
         
         private:
             bool processRequestLine(const char* begin, const char* end);
+
+            bool processRequestBodyWithWebKit(Buffer *buf, const char *crlf);
+
+            bool processRequestBodyWithCurl(string str, size_t eqtagfound, size_t ampetagfound);
     };
 };
 
