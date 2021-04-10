@@ -1,6 +1,7 @@
 #include "src/HttpServer.h"
 #include "src/HttpRequest.h"
 #include "src/HttpResponse.h"
+#include "src/Configure.h"
 #include "networker/net/EventLoop.h"
 
 
@@ -56,14 +57,22 @@ void onRequest(const HttpRequest& req, HttpResponse* resp)
 
 int main(int argc, char* argv[]) {
 
-    int numTreads = 0;
-    if (argc > 1) {
-        benchmark = true;
-        numTreads = atoi(argv[1]);
+    if (argc < 1) {
+        printf("配置文件不存在，请载入配置文件!\n");
+        return 0;
     }
 
+    int numTreads = 0;
+    Configure conf(argv[1]);	//加载配置文件
+
+    string confNumTreads = conf.getConf("numTreads");
+    string confIp = conf.getConf("ip");
+    string confPort = conf.getConf("port");
+    
+    numTreads = confNumTreads.empty() ? numTreads : ::atoi(confNumTreads.c_str());
+
     EventLoop loop;
-    HttpServer server(&loop, InetAddress(8000), "dummy");
+    HttpServer server(&loop, InetAddress(confIp, atoi(confPort.c_str())), "webd");
     server.setHttpCallback(onRequest);
     server.setThreadNum(numTreads);
 
