@@ -1,10 +1,20 @@
 #include "src/HttpContext.h"
 #include <queue>
 #include <vector>
-#include <stdio.h>
 #include <iostream>
 #include <sstream>
 using namespace webd;
+
+
+void HttpContext::setQueryParams(string queryStr)
+{
+    size_t eqtagfound = queryStr.find(eqtag);
+    size_t ampetagfound = queryStr.find(ampetag);
+    
+    if ((eqtagfound != std::string::npos) || (ampetagfound != std::string::npos)) {
+        processRequestBodyWithCurl(queryStr, eqtagfound, ampetagfound);
+    }
+}
 
 bool HttpContext::processRequestLine(const char *begin, const char *end)
 {
@@ -19,7 +29,9 @@ bool HttpContext::processRequestLine(const char *begin, const char *end)
             const char *question = std::find(start, space, '?');    // 在请求的连接中查询连接的参数
             if (question != space) {
                 request_.setPath(start, question);  // 连接地址
-                request_.setQuery(question, space); // 连接参数
+                string queryStr(question + 1, space);
+                // 连接参数
+                setQueryParams(queryStr);
             } else {
                 request_.setPath(start, space); // 连接地址
             }
@@ -41,6 +53,11 @@ bool HttpContext::processRequestLine(const char *begin, const char *end)
     return succeed;
 }
 
+string HttpContext::removeQuotationMarks(string str)
+{
+    return sUtil.Trim(sUtil.Trim(str, '\"'), '\'');
+}
+
 bool HttpContext::processRequestBodyWithWebKit(Buffer *buf, const char *crlf) 
 {
     const char *webkittag = std::search(buf->peek(), crlf, webkitChar.begin(), webkitChar.end());
@@ -53,7 +70,7 @@ bool HttpContext::processRequestBodyWithWebKit(Buffer *buf, const char *crlf)
         if (found != std::string::npos) {
             tmpKey = str.substr(found + 2, (str.size() - found - 3));
         } else if (!str.empty()){
-            request_.setParamlist(tmpKey, str);
+            request_.setParamlist(removeQuotationMarks(tmpKey), removeQuotationMarks(str));
             webkitfromState_ = false;
         }
     }
@@ -69,7 +86,7 @@ bool HttpContext::processRequestBodyWithCurl(string str, size_t eqtagfound, size
        if (eqtagfound != std::string::npos) {
             size_t found = str.find(eqtag);
             if (found != std::string::npos) {
-                request_.setParamlist(str.substr(0, found), str.substr(found + 1));
+                request_.setParamlist(removeQuotationMarks(str.substr(0, found)), removeQuotationMarks(str.substr(found + 1)));
             }
        } 
     } else {
@@ -84,7 +101,7 @@ bool HttpContext::processRequestBodyWithCurl(string str, size_t eqtagfound, size
 
                 size_t found = Qstr.find(eqtag);
                 if (found != std::string::npos) {
-                    request_.setParamlist(Qstr.substr(0, found), Qstr.substr(found + 1));
+                    request_.setParamlist(removeQuotationMarks(Qstr.substr(0, found)), removeQuotationMarks(Qstr.substr(found + 1)));
                 }
             }
         }
@@ -99,7 +116,7 @@ bool HttpContext::parseRequest(Buffer *buf, Timestamp receiveTime)
     bool ok = true;
     bool hasMore = true;
     while (hasMore) {
-        if (state_ == kExpectRequestLine) {
+        if (state_ == kExpectRequestLine) { // 请求行
             const char *crlf = buf->findCRLF(); // 找\r\n
             if (crlf) {
                 ok = processRequestLine(buf->peek(), crlf); // 请求行解析
@@ -113,7 +130,7 @@ bool HttpContext::parseRequest(Buffer *buf, Timestamp receiveTime)
             } else {
                 hasMore = false;
             }
-        } else if (state_ == kExpectHeaders) {
+        } else if (state_ == kExpectHeaders) {  // 请求头
             const char *crlf = buf->findCRLF(); // 找\r\n. 意味这个每个信息头的结束
             if (crlf) {
                 const char *colon = std::find(buf->peek(), crlf, ':');
@@ -128,19 +145,16 @@ bool HttpContext::parseRequest(Buffer *buf, Timestamp receiveTime)
             } else {
                 hasMore = false;
             }
-        } else if (state_ == kExpectBody) {
+        } else if (state_ == kExpectBody) { // 请求体
             const char *crlf = buf->findCRLF(); // 找\r\n
             if (crlf) {
                 processRequestBodyWithWebKit(buf, crlf);
                 buf->retrieveUntil(crlf + 2);
             } else {    // 无\r\n
                 string str = buf->retrieveAllAsString();
-                size_t eqtagfound = str.find(eqtag);
-                size_t ampetagfound = str.find(ampetag);
-                
-                if ((eqtagfound != std::string::npos) || (ampetagfound != std::string::npos)) {
-                    processRequestBodyWithCurl(str, eqtagfound, ampetagfound);
-                }
+                setQueryParams(str);
+
+                state_ = kGotAll;
                 hasMore = false;
             }
         }
