@@ -26,6 +26,8 @@ namespace webd
             typedef std::shared_ptr<tempInfo> tempInfoPtr;
             std::map<std::string, tempInfoPtr> templateList;
             std::string tempDir_{""};
+
+            
         
         public:
             TemplateEngine(const std::string path)
@@ -114,6 +116,8 @@ namespace webd
                 if (!ret) return ret;
 
                 tempInfoPtr tempInfo = templateList[absPath];
+
+                std::string htmlCont = tempInfo->retrieveAllAsString();
 
                 return true;
             }
