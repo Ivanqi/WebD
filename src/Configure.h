@@ -37,7 +37,11 @@ namespace webd
 
             std::string getConf(string key)
             {
-                return conf_[key];
+                if (conf_.find(key) != conf_.end()) {
+                    return conf_[key];
+                } else {
+                    return "";
+                }
             }
     };
 };

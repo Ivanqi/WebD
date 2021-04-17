@@ -9,13 +9,15 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <fstream>
+#include <iostream>
 #include "networker/net/Buffer.h"
 
 using namespace networker;
 using namespace networker::net;
 namespace webd
 {
-    class TemplateEngine
+    class TemplateParse
     {
         private:
             struct tempInfo {
@@ -26,11 +28,10 @@ namespace webd
             typedef std::shared_ptr<tempInfo> tempInfoPtr;
             std::map<std::string, tempInfoPtr> templateList;
             std::string tempDir_{""};
-
             
         
         public:
-            TemplateEngine(const std::string path)
+            TemplateParse(const std::string path)
                 :tempDir_(path)
             {
 
@@ -41,6 +42,7 @@ namespace webd
                 tempDir_ = path;
             }
 
+            // 线程不安全
             bool checkFile(const std::string filename)
             {
                 struct stat buffer;
@@ -67,6 +69,8 @@ namespace webd
 
                     templateList[absPath] = fileInfo;
                 }
+
+                return true;
             }
 
             bool preLoading()
@@ -88,7 +92,7 @@ namespace webd
 
                 while ((entry = readdir(dp)) != NULL) {
                     if (!S_ISDIR(statbuf.st_mode)) {
-                        if (strcmp(".", entry->d_name) == 0 || strcmp("..", entry->d_name)) {
+                        if (strcmp(".", entry->d_name) == 0 || strcmp("..", entry->d_name) == 0) {
                            continue; 
                         }
 
@@ -98,7 +102,9 @@ namespace webd
                         tempInfoPtr fileInfo(new tempInfo);
                         fileInfo->modifiy_time = statbuf.st_mtime;
 
-                        readFile(fileInfo->content, absPath);
+                        if (!readFile(fileInfo->content, absPath)) {
+                            break;
+                        }
                         templateList[absPath] = fileInfo;
                     }
                 }
@@ -115,10 +121,16 @@ namespace webd
 
                 if (!ret) return ret;
 
+                std::cout << "absPath: " << absPath << std::endl;
+
+                if (templateList.find(absPath) == templateList.end()) {
+                    return false;
+                }
+
                 tempInfoPtr tempInfo = templateList[absPath];
 
-                std::string htmlCont = tempInfo->retrieveAllAsString();
-
+                Buffer buf = tempInfo->content;
+                content = buf.retrieveAllAsString();
                 return true;
             }
             
@@ -126,15 +138,21 @@ namespace webd
         private:
             bool readFile(Buffer &content, const std::string path)
             {
-                FILE *fp;
-                int saveErrno = 0;
 
-                fp = fopen(path.c_str(), "r+");
-                if (fp == NULL) return false;
-                    
+                std::ifstream fin(path, std::ios::binary);
 
-                int n = content.readFd(fp, &saveErrno);
-                if (n < 0) return false;
+                unsigned long len = static_cast<unsigned int>(fin.seekg(0, std::ios::end).tellg());
+
+                if (len <= 0) {
+                    return false;
+                }
+
+                Buffer buf;
+                fin.seekg(0, std::ios::beg).read(buf.beginWrite(), len);
+                fin.close();
+
+                content.swap(buf);
+                content.hasWritten(len);
 
                 return true;
             }

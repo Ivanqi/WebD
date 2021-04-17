@@ -61,6 +61,7 @@ void HttpServer::onRequest(const TcpConnectionPtr& conn, const HttpRequest& req)
     response.appendToBuffer(&buf);
     conn->send(&buf);
     if (response.closeConnection()) {
+        std::cout << "close" << std::endl;
         conn->shutdown();
     }
 }

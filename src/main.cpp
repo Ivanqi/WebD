@@ -2,6 +2,7 @@
 #include "src/HttpRequest.h"
 #include "src/HttpResponse.h"
 #include "src/Configure.h"
+#include "src/TemplateParse.h"
 #include "networker/net/EventLoop.h"
 
 
@@ -11,6 +12,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <iostream>
+#include <memory>
 
 using namespace webd;
 using namespace networker;
@@ -18,6 +20,7 @@ using namespace networker::net;
 
 extern char favicon[555];
 bool benchmark = false;
+std::shared_ptr<TemplateParse> parse(new TemplateParse("/"));
 
 void onRequest(const HttpRequest& req, HttpResponse* resp)
 {
@@ -29,14 +32,23 @@ void onRequest(const HttpRequest& req, HttpResponse* resp)
         }
     }
 
-    if (req.path() == "/") {
+    std::cout << "req.path: " << req.path() << std::endl;
+    std::string context;
+
+    string path = (req.path()[0] == '/' && req.path().size() > 1) ? req.path().substr(1) : req.path();
+    
+    parse->parse(path, context);
+    resp->setCloseConnection(true);
+
+    if (req.path() == "/" || req.path() == "/index.html") {
         resp->setStatusCode(HttpResponse::k200OK);
         resp->setStatusMessage("OK");
         resp->setContentType("text/html");
         resp->addHeader("Server", "HttpServer");
 
         string now = Timestamp::now().toFormattedString();
-        resp->setBody("<html><head><title>This is title</title></head>" "<body><h1>Hello</h1>Now is " + now + "</body></html>");
+        resp->setBody(context);
+        resp->setCloseConnection(true);
     } else if (req.path() == "/favicon.ico") {
         resp->setStatusCode(HttpResponse::k200OK);
         resp->setStatusMessage("OK");
@@ -57,7 +69,7 @@ void onRequest(const HttpRequest& req, HttpResponse* resp)
 
 int main(int argc, char* argv[]) {
 
-    if (argc < 1) {
+    if (argc < 2) {
         printf("配置文件不存在，请载入配置文件!\n");
         return 0;
     }
@@ -68,6 +80,16 @@ int main(int argc, char* argv[]) {
     string confNumTreads = conf.getConf("numTreads");
     string confIp = conf.getConf("ip");
     string confPort = conf.getConf("port");
+    string webRoot = conf.getConf("web_root");
+
+    if (webRoot.empty()) {
+        printf("Web Root 目录不存在");
+        return 0;
+    }
+
+    parse->setTempDIr(webRoot);
+    parse->preLoading();
+    
     
     numTreads = confNumTreads.empty() ? numTreads : ::atoi(confNumTreads.c_str());
 
