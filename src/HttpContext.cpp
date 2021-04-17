@@ -137,9 +137,9 @@ bool HttpContext::parseRequest(Buffer *buf, Timestamp receiveTime)
                 if (colon != crlf) {
                     request_.addHeader(buf->peek(), colon, crlf);
                 } else {
-                    // buf->retrieveUntil(crlf + 2);
-                    state_ = kExpectBody;
-                    // hasMore = false;
+                    // state_ = kExpectBody;
+                    state_ = kGotAll;
+                    hasMore = false;
                 }
                 buf->retrieveUntil(crlf + 2);
             } else {
@@ -153,7 +153,6 @@ bool HttpContext::parseRequest(Buffer *buf, Timestamp receiveTime)
             } else {    // 无\r\n
                 string str = buf->retrieveAllAsString();
                 setQueryParams(str);
-
                 state_ = kGotAll;
                 hasMore = false;
             }

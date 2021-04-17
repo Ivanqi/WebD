@@ -3,7 +3,10 @@
 #include "src/HttpResponse.h"
 #include "src/Configure.h"
 #include "src/TemplateParse.h"
+#include "networker/base/Thread.h"
 #include "networker/net/EventLoop.h"
+#include "networker/base/Logging.h"
+#include "networker/base/AsyncLogging.h"
 
 
 #include <functional>
@@ -20,11 +23,13 @@ using namespace networker::net;
 
 extern char favicon[555];
 bool benchmark = false;
+int kRollSize = 500 * 1000 * 1000;
+
 std::shared_ptr<TemplateParse> parse(new TemplateParse("/"));
+std::unique_ptr<AsyncLogging> g_asyncLog;
 
 void onRequest(const HttpRequest& req, HttpResponse* resp)
 {
-    std::cout << "Headers " << req.methodString() << " " << req.path() << std::endl;
     if (!benchmark) {
         const std::map<string, string>& headers = req.headers();
         for (const auto& header: headers) {
@@ -32,13 +37,11 @@ void onRequest(const HttpRequest& req, HttpResponse* resp)
         }
     }
 
-    std::cout << "req.path: " << req.path() << std::endl;
     std::string context;
 
     string path = (req.path()[0] == '/' && req.path().size() > 1) ? req.path().substr(1) : req.path();
     
     parse->parse(path, context);
-    resp->setCloseConnection(true);
 
     if (req.path() == "/" || req.path() == "/index.html") {
         resp->setStatusCode(HttpResponse::k200OK);
@@ -48,7 +51,6 @@ void onRequest(const HttpRequest& req, HttpResponse* resp)
 
         string now = Timestamp::now().toFormattedString();
         resp->setBody(context);
-        resp->setCloseConnection(true);
     } else if (req.path() == "/favicon.ico") {
         resp->setStatusCode(HttpResponse::k200OK);
         resp->setStatusMessage("OK");
@@ -67,6 +69,73 @@ void onRequest(const HttpRequest& req, HttpResponse* resp)
     }
 }
 
+typedef std::uint64_t hash_t;  
+   
+constexpr hash_t prime = 0x100000001B3ull;  
+constexpr hash_t basis = 0xCBF29CE484222325ull;  
+  
+hash_t hash_(char const* str)  
+{  
+    hash_t ret{basis};  
+   
+    while(*str){  
+        ret ^= *str;  
+        ret *= prime;  
+        str++;  
+    }  
+   
+    return ret;  
+}
+
+constexpr hash_t hash_compile_time(char const* str, hash_t last_value = basis)  
+{  
+    return *str ? hash_compile_time(str + 1, (*str ^ last_value) * prime) : last_value;  
+}  
+
+Logger::LogLevel getLogLevel(const string& levelStr) {
+    switch (hash_(levelStr.c_str())) {
+        case hash_compile_time("info"):
+            return Logger::INFO;
+            break;
+        
+        case hash_compile_time("debug"):
+            return Logger::DEBUG;
+            break;
+        
+        case hash_compile_time("trace"):
+            return Logger::TRACE;
+            break;
+        
+        case hash_compile_time("warn"):
+            return Logger::WARN;
+            break;
+        
+        case hash_compile_time("error"):
+            return Logger::ERROR;
+            break;
+        
+        case hash_compile_time("fatal"):
+            return Logger::FATAL;
+            break;
+        default:
+            return Logger::INFO;
+            break;
+    }
+}
+
+void asyncOutput(const char *msg, int len) {
+    g_asyncLog->append(msg, len);
+}
+
+void setLogging(string logDir, const string& logLevel) {
+    Logger::setLogLevel(getLogLevel(logLevel));
+    Logger::setOutput(asyncOutput);
+    std::cout << "logDir: " << logDir << std::endl;
+    g_asyncLog.reset(new AsyncLogging(logDir, kRollSize));
+    g_asyncLog->start();
+}
+
+
 int main(int argc, char* argv[]) {
 
     if (argc < 2) {
@@ -81,11 +150,19 @@ int main(int argc, char* argv[]) {
     string confIp = conf.getConf("ip");
     string confPort = conf.getConf("port");
     string webRoot = conf.getConf("web_root");
+    string logLevel = conf.getConf("log_level");
+    string logDir = conf.getConf("log_dir");
 
     if (webRoot.empty()) {
         printf("Web Root 目录不存在");
         return 0;
     }
+
+    if ((!logLevel.empty()) && (!logDir.empty())) {
+       setLogging(logDir, logLevel);
+    }
+
+    LOG_INFO << "pid = " << getpid() << ", tid = " << CurrentThread::tid();
 
     parse->setTempDIr(webRoot);
     parse->preLoading();
