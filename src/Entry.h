@@ -41,9 +41,7 @@ namespace webd
             void onRequest(const HttpRequest& req, HttpResponse* resp);
 
             void static asyncOutput(const char *msg, int len);
-            
-            void static  handlerStatic(void *p_A, const char *msg, int len);
-        
+                    
         private:
             hash_t hash(char const* str);
 
@@ -51,9 +49,7 @@ namespace webd
 
             Logger::LogLevel getLogLevel(const string& levelStr);
 
-            void setLogging(string logDir, const string& logLevel);
-
-            
+            void setLogging(string logDir, const string& logLevel);  
     };
 };
 

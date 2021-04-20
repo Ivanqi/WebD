@@ -28,7 +28,7 @@ namespace webd
             }
 
             template <class Uint16Container>
-            bool Utf8ToUnicode(const char* const str, size_t len, Uint16Container& vec)
+            bool static Utf8ToUnicode(const char* const str, size_t len, Uint16Container& vec)
             {
                 if (!str) {
                     return false;
@@ -74,13 +74,13 @@ namespace webd
             }
 
             template <class Uint16Container>
-            bool utf8ToUnicode(const string& str, Uint16Container& vec)
+            bool static utf8ToUnicode(const std::string& str, Uint16Container& vec)
             {
                 return Utf8ToUnicode(str.c_str(), str.size(), vec);
             }
 
             template <class Uint16ContainerConIter>
-            void unicodeToUtf8(Uint16ContainerConIter begin, Uint16ContainerConIter end, std::string& res)
+            void static unicodeToUtf8(Uint16ContainerConIter begin, Uint16ContainerConIter end, std::string& res)
             {
                 res.clear();
                 uint16_t ui;

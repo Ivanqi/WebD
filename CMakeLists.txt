@@ -62,6 +62,7 @@ set(src_dir
     src/HttpResponse.cpp
     src/HttpServer.cpp
     src/Entry.cpp
+    src/TemplateReplace.cpp
 )
 
 add_executable(webd ${src_dir} src/main.cpp)

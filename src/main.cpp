@@ -3,7 +3,6 @@ using namespace webd;
 
 extern char favicon[555];
 
-
 int main(int argc, char* argv[]) {
 
     if (argc < 2) {

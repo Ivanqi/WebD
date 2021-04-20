@@ -12,6 +12,8 @@
 #include <fstream>
 #include <iostream>
 #include "networker/net/Buffer.h"
+#include "src/TemplateReplace.h"
+#include "src/TransCode.h"
 
 using namespace networker;
 using namespace networker::net;
@@ -131,6 +133,14 @@ namespace webd
 
                 Buffer buf = tempInfo->content;
                 content = buf.retrieveAllAsString();
+                
+                TemplateReplace replace;
+                replace.insertNode(TransCode::decode("html"));
+                replace.buildFailurePointer();
+
+                Unicode contentUni = TransCode::decode(content);
+                string res = replace.match(contentUni.begin(), contentUni.end(), content, '*');
+                std::cout << "res: " << res << std::endl;
                 return true;
             }
             
