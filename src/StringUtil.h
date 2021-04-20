@@ -4,6 +4,7 @@
 #include <string>
 #include <algorithm>
 #include <functional>
+#include <stdio.h>
 namespace webd
 {
     class StringUtil
@@ -33,7 +34,6 @@ namespace webd
                 if (!str) {
                     return false;
                 }
-
                 char ch1, ch2;
                 uint16_t tmp;
                 vec.clear();

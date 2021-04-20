@@ -20,7 +20,7 @@ namespace webd
             NextMap *next;
             UnicodeValueType word;
             bool isEnding;  // 结尾字符为true
-            int length;
+            int length{0};
 
         public:
             TrieNode()

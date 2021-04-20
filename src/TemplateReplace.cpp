@@ -167,7 +167,7 @@ string TemplateReplace::match(Unicode::const_iterator begin, Unicode::const_iter
         while (tmp != NULL && tmp != root_) {
             if (tmp->isEnding == true) {
                 int pos = i - tmp->length + len;
-                std::cout << "匹配起始下标: " << "i: " << i << " | pos: " << pos << "; 长度: " << tmp->length << std::endl;
+                // std::cout << "匹配起始下标: " << "i: " << i  << " | citer: " << (*citer) << " | pos: " << pos << "; 长度: " << tmp->length << std::endl;
                 check[pos] = tmp->length;
             }
             tmp = tmp->fail;
@@ -175,7 +175,6 @@ string TemplateReplace::match(Unicode::const_iterator begin, Unicode::const_iter
 
         i += len;
     }
-
     return replaceFun(check, matchStr, replaceStr);
 }
 

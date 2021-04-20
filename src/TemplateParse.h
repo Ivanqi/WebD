@@ -135,7 +135,7 @@ namespace webd
                 content = buf.retrieveAllAsString();
                 
                 TemplateReplace replace;
-                replace.insertNode(TransCode::decode("html"));
+                replace.insertNode(TransCode::decode("{{"));
                 replace.buildFailurePointer();
 
                 Unicode contentUni = TransCode::decode(content);

@@ -67,7 +67,7 @@ void Entry::onRequest(const HttpRequest& req, HttpResponse* resp)
     
     parse_->parse(path, context);
 
-    if (req.path() == "/" || req.path() == "/index.html") {
+    if (req.path() == "/" || req.path() == "/index.html" || req.path() == "/post.html") {
         resp->setStatusCode(HttpResponse::k200OK);
         resp->setStatusMessage("OK");
         resp->setContentType("text/html");
