@@ -2,12 +2,13 @@
 #define WEBD_TRANSCODE_H
 
 #include "LocalVector.h"
+#include <vector>
 #include "StringUtil.h"
 
 namespace webd
 {
     typedef uint16_t UnicodeValueType;
-    typedef LocalVector<UnicodeValueType> Unicode;
+    typedef std::vector<UnicodeValueType> Unicode;
 
     namespace TransCode
     {

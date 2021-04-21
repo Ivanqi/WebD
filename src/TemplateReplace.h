@@ -4,9 +4,10 @@
 #include "TransCode.h"
 #include <unordered_map>
 #include <string>
+#include <vector>
 using std::unordered_map;
 using std::string;
-
+using std::vector;
 
 namespace webd
 {
@@ -19,7 +20,7 @@ namespace webd
             TrieNode *fail; // 失败指针
             NextMap *next;
             UnicodeValueType word;
-            bool isEnding;  // 结尾字符为true
+            bool isEnding{false};  // 结尾字符为true
             int length{0};
 
         public:
@@ -48,8 +49,13 @@ namespace webd
     class TemplateReplace
     {
         private:
-            std::string resolverLeft{"{{"};
-            std::string resolverRigth{"}}"};
+            std::string resolverLeft_{"{{"};
+            std::string resolverRigth_{"}}"};
+            Unicode resolverLeftUni_;
+            Unicode resolverRigthUni_;
+            bool leftFlag_{false};
+            int endFlag_{0};
+            unordered_map<string, string> field_;
 
             TrieNode *root_;
 
@@ -68,7 +74,7 @@ namespace webd
 
             string match(Unicode::const_iterator begin, Unicode::const_iterator end, string matchStr, char replaceStr);
 
-            string replaceFun(unordered_map<int, int> check, string text, char replaceStr);
+            string replaceFun(vector<vector<int>>& check, string text, char replaceStr);
 
             void deleteNode(TrieNode* node);
         private:
