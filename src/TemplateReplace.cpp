@@ -5,6 +5,18 @@
 using std::queue;
 
 using namespace webd;
+
+TemplateReplace::TemplateReplace()
+{
+    root_ = new TrieNode;
+    Unicode leftUni = TransCode::decode(resolverLeft);
+    Unicode rightUni = TransCode::decode(resolverRigth);
+    insertNode(leftUni);
+    insertNode(rightUni);
+    buildFailurePointer();
+}
+
+
 TemplateReplace::~TemplateReplace()
 {
     if (root_) {
@@ -142,6 +154,7 @@ string TemplateReplace::match(Unicode::const_iterator begin, Unicode::const_iter
     string res;
     int i = 0;
     unordered_map<int, int> check;
+    // uint16_t prev = 0;
 
     for (Unicode::const_iterator citer = begin; citer != end; citer++) {
         /**
@@ -165,6 +178,7 @@ string TemplateReplace::match(Unicode::const_iterator begin, Unicode::const_iter
         TrieNode *tmp = ptNode;
         int len = calcUnicodeLen(citer);
         while (tmp != NULL && tmp != root_) {
+            // std::cout << "word: " << tmp->word << std::endl;
             if (tmp->isEnding == true) {
                 int pos = i - tmp->length + len;
                 // std::cout << "匹配起始下标: " << "i: " << i  << " | citer: " << (*citer) << " | pos: " << pos << "; 长度: " << tmp->length << std::endl;

@@ -54,10 +54,7 @@ namespace webd
             TrieNode *root_;
 
         public:
-            TemplateReplace()
-            {
-                root_ = new TrieNode;
-            }
+            TemplateReplace();
 
             ~TemplateReplace();
 
