@@ -10,6 +10,9 @@ TemplateReplace::TemplateReplace()
 {
     root_ = new TrieNode;
 
+    resolverLeftUni_ = TransCode::decode(resolverLeft_);
+    resolverRigthUni_ = TransCode::decode(resolverRigth_);
+
     field_["class_name"] = "二年纪";
     field_["date"] = "2020-01-02 12:00:00";
     field_["title"] = "交易";
@@ -184,6 +187,40 @@ string TemplateReplace::matchReplace(string text)
     return text;
 }
 
+string TemplateReplace::matchByBm(string text)
+{
+    bool flag = true;
+    size_t found = 0;
+
+    int leftLen = resolverLeft_.length();
+    int rightLen = resolverRigth_.length();
+
+    while (flag) {
+        Unicode textUni = TransCode::decode(text);
+        if (!leftFlag_) {
+            found = BM(textUni, resolverLeftUni_);
+            if (found == -1) {
+                leftFlag_ = true;
+            } else {
+                flag = false;
+            }
+        } else {
+            found = BM(textUni, resolverRigthUni_);
+            if (found == -1) {
+                size_t preFoud = found;
+                string tmpStr = text.substr(preFoud + leftLen, (found - preFoud - rightLen));
+                if (field_.find(tmpStr) != field_.end()) {
+                    string value = field_[tmpStr];
+                    text.replace(preFoud, found - preFoud + rightLen, value.c_str());
+                }
+                leftFlag_ = false;
+            } else {
+                flag = false;
+            }
+        }
+    }
+}
+
 string TemplateReplace::match(Unicode::const_iterator begin, Unicode::const_iterator end, string matchStr, char replaceStr)
 {
     TrieNode *ptNode = root_;
@@ -267,4 +304,98 @@ int TemplateReplace::calcUnicodeLen(Unicode::const_iterator uni)
     } else {
         return 3;
     }
+}
+
+
+// 构建散列表
+void TemplateReplace::generateBc(Unicode p, vector<int>* bc)
+{
+    for (int i = 0; i < p.size(); i++) {
+        uint16_t as = p[i];
+        bc->at(as) = i;
+    }
+}
+
+/**
+ * 构建 suffix 和 prefix 数组
+ *  模式串的后缀子串和前缀子串
+ *  后缀子串是用于与好后缀子串进行匹配的。 
+ *  前缀子串是用于与好后缀中最长的子串进行匹配。
+*/
+void TemplateReplace::generateGS(Unicode pUni, int *suffix, bool *prefix)
+{
+    int pLen = pUni.size();
+    int i = 0;
+    for (i = 0; i < pLen; i++) {
+        suffix[i] = -1;
+        prefix[i] = false;
+    }
+
+    for (i = 0; i < pLen - 1; i++) {
+       int j = i;
+       int k = 0;
+        while (j >= 0 && pUni[j] == pUni[pLen - 1 - k]) {
+           --j;
+           ++k;
+           suffix[k] = j + 1;
+        }
+
+        if (j == -1) prefix[k] = true;
+    }
+}
+
+/* 好后缀移动规则
+    *  j 表示坏字符所在位置
+    *  pLen 表示模式串的长度
+    */
+int TemplateReplace::moveByGs(int j, int pLen, int *suffix, bool *prefix)
+{
+    int k = pLen - 1 - j;   // 好后缀长度
+
+    // 情况1，suffix中存在好后缀
+    if (suffix[k] != -1) return j - suffix[k] + 1;
+    int r;
+
+    // 情况2，查找好后缀的最长字符串是否和prefix的前缀子串匹配
+    for (r = j + 2; r <= pLen - 1; r++) {
+        if (prefix[pLen - r] == true) return r;
+    }
+
+    // 情况3， 什么情况都没有匹配.返回模式串的长度
+    return pLen;
+}
+
+// bm 字符串替换算法
+int TemplateReplace::BM(Unicode sUni, Unicode patternUni)
+{
+    vector<int> bc(BM_MAX_SIZE, -1);
+    generateBc(patternUni, &bc);
+
+    int sLen = sUni.size();
+    int pLen = patternUni.size();
+    int suffix[pLen];
+    bool prefix[pLen];
+
+
+    generateGS(patternUni, suffix, prefix);
+
+    int i = 0;  
+    while (i <= sLen - pLen) {
+        int j;                                      // j表示主串与模式串匹配的第一个字符
+        for (j = pLen - 1; j >= 0; j--) {           // 模式串从后往前匹配
+            if (sUni[i + j] != patternUni[j]) break; // 坏字符对应模式串的下标是j
+        }
+
+        if (j < 0) return i;    // 匹配成功，返回主串与模式串第一个匹配的字符的位置
+
+        int x = (j - bc[sUni[i + j]]);
+        int y = 0;
+
+        if (j < pLen - 1) {     // 如果有好后缀的话
+           y = moveByGs(j, pLen, suffix, prefix);
+        } 
+        i = i + (x > y ? x : y);
+    }
+
+    return -1;
 }

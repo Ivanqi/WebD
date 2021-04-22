@@ -12,6 +12,7 @@ using std::vector;
 namespace webd
 {
     typedef UnicodeValueType TrieKey;
+    #define BM_MAX_SIZE 65535
 
     class TrieNode
     {
@@ -53,6 +54,8 @@ namespace webd
             std::string resolverRigth_{"}}"};
             bool leftFlag_{false};
             unordered_map<string, string> field_;
+            Unicode resolverLeftUni_;
+            Unicode resolverRigthUni_;
 
             TrieNode *root_;
 
@@ -73,11 +76,33 @@ namespace webd
 
             string matchReplace(string text);
 
+            string matchByBm(string text);
+
             void deleteNode(TrieNode* node);
         private:
             int calcUnicodeLen(Unicode::const_iterator uni);
 
             string replaceFun(unordered_map<int, int> check, string text, char replaceStr);
+
+            // 构建散列表
+            void generateBc(Unicode p, vector<int>* bc);
+
+            /**
+             * 构建 suffix 和 prefix 数组
+             *  模式串的后缀子串和前缀子串
+             *  后缀子串是用于与好后缀子串进行匹配的。 
+             *  前缀子串是用于与好后缀中最长的子串进行匹配。
+            */
+            void generateGS(Unicode pUni, int *suffix, bool *prefix);
+
+            /* 好后缀移动规则
+             *  j 表示坏字符所在位置
+             *  pLen 表示模式串的长度
+             */
+            int moveByGs(int j, int pLen, int *suffix, bool *prefix);
+
+            // bm 字符串替换算法
+            int BM(Unicode sUni, Unicode patternUni);
     };
 };
 #endif
