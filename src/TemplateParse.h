@@ -136,9 +136,7 @@ namespace webd
                 
                 TemplateReplace replace;
 
-                Unicode contentUni = TransCode::decode(content);
-                string res = replace.match(contentUni.begin(), contentUni.end(), content, '*');
-                std::cout << "res: " << res << std::endl;
+                content = replace.matchReplace(content);
                 return true;
             }
             

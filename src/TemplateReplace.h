@@ -51,10 +51,7 @@ namespace webd
         private:
             std::string resolverLeft_{"{{"};
             std::string resolverRigth_{"}}"};
-            Unicode resolverLeftUni_;
-            Unicode resolverRigthUni_;
             bool leftFlag_{false};
-            int endFlag_{0};
             unordered_map<string, string> field_;
 
             TrieNode *root_;
@@ -74,11 +71,13 @@ namespace webd
 
             string match(Unicode::const_iterator begin, Unicode::const_iterator end, string matchStr, char replaceStr);
 
-            string replaceFun(vector<vector<int>>& check, string text, char replaceStr);
+            string matchReplace(string text);
 
             void deleteNode(TrieNode* node);
         private:
             int calcUnicodeLen(Unicode::const_iterator uni);
+
+            string replaceFun(unordered_map<int, int> check, string text, char replaceStr);
     };
 };
 #endif

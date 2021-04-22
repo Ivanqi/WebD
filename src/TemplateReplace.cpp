@@ -2,20 +2,13 @@
 #include <queue>
 #include <assert.h>
 #include <iostream>
-
-#include <stdio.h>
+#include <algorithm>
 using std::queue;
 using namespace webd;
 
 TemplateReplace::TemplateReplace()
 {
     root_ = new TrieNode;
-    endFlag_ = resolverRigth_.size();
-    resolverLeftUni_ = TransCode::decode(resolverLeft_);
-    resolverRigthUni_ = TransCode::decode(resolverRigth_);
-    insertNode(resolverLeftUni_);
-    insertNode(resolverRigthUni_);
-    buildFailurePointer();
 
     field_["class_name"] = "二年纪";
     field_["date"] = "2020-01-02 12:00:00";
@@ -155,14 +148,48 @@ void TemplateReplace::insertNode(const Unicode& key)
    
 }
 
+string TemplateReplace::matchReplace(string text)
+{
+    bool flag = true;
+    size_t found = 0;
+
+    int leftLen = resolverLeft_.length();
+    int rightLen = resolverRigth_.length();
+
+    while (flag) {
+        if (!leftFlag_) {
+            if (text.find(resolverLeft_) != string::npos) {
+                found = text.find(resolverLeft_);
+                leftFlag_ = true;
+            } else {
+                flag = false;
+            }
+        } else {
+            if (text.find(resolverRigth_) != string::npos) {
+                size_t preFoud = found;
+                found = text.find(resolverRigth_);
+                string tmpStr = text.substr(preFoud + leftLen, (found - preFoud - rightLen));
+
+                if (field_.find(tmpStr) != field_.end()) {
+                    string value = field_[tmpStr];
+                    text.replace(preFoud, found - preFoud + rightLen, value.c_str());
+                }
+                leftFlag_ = false;
+            } else {
+                flag = false;
+            }
+        }
+    }
+
+    return text;
+}
+
 string TemplateReplace::match(Unicode::const_iterator begin, Unicode::const_iterator end, string matchStr, char replaceStr)
 {
     TrieNode *ptNode = root_;
     int i = 0;
 
-    vector<uint16_t> selectUni;
-    vector<int> tmpPos;
-    vector<vector<int>> check;
+    unordered_map<int, int> check;
 
     for (Unicode::const_iterator citer = begin; citer != end; citer++) {
         /**
@@ -186,48 +213,11 @@ string TemplateReplace::match(Unicode::const_iterator begin, Unicode::const_iter
         TrieNode *tmp = ptNode;
         int len = calcUnicodeLen(citer);
 
-        if (tmp != NULL && tmp != root_) {
-            selectUni.push_back(*citer);
-        }
-
         while (tmp != NULL && tmp != root_) {
             if (tmp->isEnding == true) {
                 int pos = i - tmp->length + len;
-                std::cout << "匹配起始下标: " << "i: " << i  << " | citer: " << (*citer) << " | pos: " << pos << "; 长度: " << tmp->length << std::endl;
-
-
-                bool checkFlag = false;
-                for (size_t i = 0; i < resolverLeftUni_.size(); i++) {
-                    if (selectUni[i] == resolverLeftUni_[i]) {
-                        checkFlag = true;
-                    } else {
-                        checkFlag = false;
-                    }
-                }
-
-                if (checkFlag) {
-                    leftFlag_ = true;
-                    tmpPos.push_back(pos);
-                    selectUni.clear();
-                } else {
-                    for (size_t i = 0; i < resolverRigthUni_.size(); i++) {
-                        if (selectUni[i] == resolverRigthUni_[i]) {
-                            checkFlag = true;
-                        } else {
-                            checkFlag = false;
-                        }
-                    }
-
-                    selectUni.clear();
-
-                    if (leftFlag_ && checkFlag) {
-                        tmpPos.push_back(pos + tmp->length);
-                        check.push_back(tmpPos);
-
-                        leftFlag_ = false;
-                    }
-                    tmpPos.clear();
-                }
+                // std::cout << "匹配起始下标: " << "i: " << i  << " | citer: " << (*citer) << " | pos: " << pos << "; 长度: " << tmp->length << std::endl;
+                check[pos] = tmp->length;
             }
             tmp = tmp->fail;
         }
@@ -237,24 +227,13 @@ string TemplateReplace::match(Unicode::const_iterator begin, Unicode::const_iter
     return replaceFun(check, matchStr, replaceStr);
 }
 
-string TemplateReplace::replaceFun(vector<vector<int>>& check, string text, char replaceStr)
+string TemplateReplace::replaceFun(unordered_map<int, int> check, string text, char replaceStr)
 {
-    for (auto tmp: check) {
-        int start = tmp[0];
-        int end = tmp[1];
-
-        string tmpStr = text.substr(start, end - start);
-        std::cout << "tmpStr: " << tmpStr << std::endl;
-        int len = tmpStr.length();
-        tmpStr = tmpStr.substr(endFlag_, len - endFlag_ * 2);
-        std::cout << "start:" << start << " | end:" << end << " | " << tmpStr << std::endl;
-
-        if (field_.find(tmpStr) != field_.end()) {
-            string value = field_[tmpStr];
-            text.replace(start, end, value);
-        }
-        break;
+    unordered_map<int, int>::iterator it;
+    for (it = check.begin(); it != check.end(); it++) {                
+        text.replace(it->first, it->second, it->second, replaceStr);
     }
+    return text;
 
     return text;
 }
