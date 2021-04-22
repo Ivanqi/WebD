@@ -136,7 +136,7 @@ namespace webd
                 
                 TemplateReplace replace;
 
-                content = replace.matchReplace(content);
+                content = replace.matchByBm(content);
                 return true;
             }
             

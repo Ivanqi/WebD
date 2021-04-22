@@ -81,6 +81,9 @@ namespace webd
             void deleteNode(TrieNode* node);
         private:
             int calcUnicodeLen(Unicode::const_iterator uni);
+            
+            int calcUnicodeLen(TrieKey uni);
+
 
             string replaceFun(unordered_map<int, int> check, string text, char replaceStr);
 

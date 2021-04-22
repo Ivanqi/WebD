@@ -190,28 +190,40 @@ string TemplateReplace::matchReplace(string text)
 string TemplateReplace::matchByBm(string text)
 {
     bool flag = true;
-    size_t found = 0;
+    int found = 0;
 
     int leftLen = resolverLeft_.length();
     int rightLen = resolverRigth_.length();
-
     while (flag) {
         Unicode textUni = TransCode::decode(text);
         if (!leftFlag_) {
             found = BM(textUni, resolverLeftUni_);
-            if (found == -1) {
+            if (found != -1) {
                 leftFlag_ = true;
             } else {
                 flag = false;
             }
         } else {
+            int preFoud = found;
             found = BM(textUni, resolverRigthUni_);
-            if (found == -1) {
-                size_t preFoud = found;
-                string tmpStr = text.substr(preFoud + leftLen, (found - preFoud - rightLen));
+            if (leftFlag_ && found != -1) {
+                
+                int leftPos = 0;
+                int i;
+                for (i = 0; i < preFoud; i++) {
+                    leftPos += calcUnicodeLen(textUni[i]);
+                }
+
+                int rightPos = leftPos;
+                for (i = preFoud; i < found; i++) {
+                    rightPos += calcUnicodeLen(textUni[i]);
+                }
+
+                string tmpStr = text.substr(leftPos + leftLen, rightPos - leftPos - rightLen);
+                tmpStr = StringUtil::Trim(tmpStr, ' ');
                 if (field_.find(tmpStr) != field_.end()) {
                     string value = field_[tmpStr];
-                    text.replace(preFoud, found - preFoud + rightLen, value.c_str());
+                    text.replace(leftPos, rightPos - leftPos + rightLen, value.c_str());
                 }
                 leftFlag_ = false;
             } else {
@@ -219,6 +231,8 @@ string TemplateReplace::matchByBm(string text)
             }
         }
     }
+
+    return text;
 }
 
 string TemplateReplace::match(Unicode::const_iterator begin, Unicode::const_iterator end, string matchStr, char replaceStr)
@@ -293,24 +307,11 @@ void TemplateReplace::deleteNode(TrieNode* node)
     delete node;
 }
 
-int TemplateReplace::calcUnicodeLen(Unicode::const_iterator uni)
-{
-    uint16_t ui = *uni;
-
-    if (ui <= 0x7f) {
-        return 1;
-    } else if (ui <= 0x7ff) {
-        return 2;
-    } else {
-        return 3;
-    }
-}
-
-
 // 构建散列表
 void TemplateReplace::generateBc(Unicode p, vector<int>* bc)
 {
-    for (int i = 0; i < p.size(); i++) {
+    int pLen = p.size();
+    for (int i = 0; i < pLen; i++) {
         uint16_t as = p[i];
         bc->at(as) = i;
     }
@@ -398,4 +399,21 @@ int TemplateReplace::BM(Unicode sUni, Unicode patternUni)
     }
 
     return -1;
+}
+
+int TemplateReplace::calcUnicodeLen(Unicode::const_iterator uni)
+{
+    TrieKey ui = *uni;
+
+    return calcUnicodeLen(ui);
+}
+
+int TemplateReplace::calcUnicodeLen(TrieKey ui) {
+    if (ui <= 0x7f) {
+        return 1;
+    } else if (ui <= 0x7ff) {
+        return 2;
+    } else {
+        return 3;
+    }
 }
