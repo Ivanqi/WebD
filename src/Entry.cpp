@@ -46,7 +46,6 @@ void Entry::start(char* argv[])
     parse_->setTempDIr(webRoot);
     parse_->preLoading();
     
-    
     numTreads = confNumTreads.empty() ? numTreads : ::atoi(confNumTreads.c_str());
 
     EventLoop loop;
@@ -68,43 +67,28 @@ void Entry::onRequest(const HttpRequest& req, HttpResponse* resp)
     
     bool ret = parse_->parse(path, context, req.paramlist());
 
+    LOG_INFO << "path:" << path << "ret:" << ret;
+
     if (ret) {
         resp->setStatusCode(HttpResponse::k200OK);
         resp->setStatusMessage("OK");
         resp->setContentType("text/html");
         resp->addHeader("Server", "HttpServer");
-
         resp->setBody(context);
+
+    } else if (req.path() == "/favicon.ico") {
+        resp->setStatusCode(HttpResponse::k200OK);
+        resp->setStatusMessage("OK");
+        resp->setContentType("image/png");
+        resp->setBody(string(favicon, sizeof(favicon)));
     } else {
         resp->setStatusCode(HttpResponse::k404NotFound);
         resp->setStatusMessage("Not Found");
+        resp->setStatusMessage("Error");
+        resp->setContentType("text/html");
+        resp->setBody("Not Found");
         resp->setCloseConnection(true);
     }
-
-    // if (req.path() == "/" || req.path() == "/index.html" || req.path() == "/post.html") {
-    //     resp->setStatusCode(HttpResponse::k200OK);
-    //     resp->setStatusMessage("OK");
-    //     resp->setContentType("text/html");
-    //     resp->addHeader("Server", "HttpServer");
-
-    //     string now = Timestamp::now().toFormattedString();
-    //     resp->setBody(context);
-    // } else if (req.path() == "/favicon.ico") {
-    //     resp->setStatusCode(HttpResponse::k200OK);
-    //     resp->setStatusMessage("OK");
-    //     resp->setContentType("image/png");
-    //     // resp->setBody(string(favicon, sizeof(favicon)));
-    // } else if (req.path() == "/hello") {
-    //     resp->setStatusCode(HttpResponse::k200OK);
-    //     resp->setStatusMessage("OK");
-    //     resp->setContentType("text/plain");
-    //     resp->addHeader("Server", "HttpServer");
-    //     resp->setBody("hello, world!\n");
-    // } else {
-    //     resp->setStatusCode(HttpResponse::k404NotFound);
-    //     resp->setStatusMessage("Not Found");
-    //     resp->setCloseConnection(true);
-    // }
 }
 
 void Entry::asyncOutput(const char *msg, int len)

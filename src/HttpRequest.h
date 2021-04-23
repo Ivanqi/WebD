@@ -162,7 +162,6 @@ namespace webd
                 while (!value.empty() && isspace(value[value.size() - 1])) {
                     value.resize(value.size() - 1);
                 }
-                LOG_INFO << "field: " << field << " | value: " << value;
                 headers_[field] = value;
             }
 

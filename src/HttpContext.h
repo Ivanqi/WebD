@@ -41,6 +41,7 @@ namespace webd
                 return state_ == kGotAll;
             }
 
+            // 复位
             void reset()
             {
                 state_ = kExpectRequestLine;

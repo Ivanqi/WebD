@@ -9,7 +9,6 @@ using namespace webd;
 
 void HttpContext::setQueryParams(string queryStr)
 {
-    LOG_INFO <<  "queryStr: " << queryStr;
     size_t eqtagfound = queryStr.find(eqtag);
     size_t ampetagfound = queryStr.find(ampetag);
     
@@ -120,7 +119,6 @@ bool HttpContext::parseRequest(Buffer *buf, Timestamp receiveTime)
     while (hasMore) {
         if (state_ == kExpectRequestLine) { // 请求行
             const char *crlf = buf->findCRLF(); // 找\r\n
-            std::cout << crlf << std::endl;
             if (crlf) {
                 ok = processRequestLine(buf->peek(), crlf); // 请求行解析
                 if (ok) {
@@ -140,9 +138,9 @@ bool HttpContext::parseRequest(Buffer *buf, Timestamp receiveTime)
                 if (colon != crlf) {
                     request_.addHeader(buf->peek(), colon, crlf);
                 } else {
-                    // state_ = kExpectBody;
-                    state_ = kGotAll;
-                    hasMore = false;
+                    state_ = kExpectBody;
+                    // state_ = kGotAll;
+                    // hasMore = false;
                 }
                 buf->retrieveUntil(crlf + 2);
             } else {
@@ -150,7 +148,6 @@ bool HttpContext::parseRequest(Buffer *buf, Timestamp receiveTime)
             }
         } else if (state_ == kExpectBody) { // 请求体
             const char *crlf = buf->findCRLF(); // 找\r\n
-            LOG_INFO << "crlf: " << crlf;
             if (crlf) {
                 processRequestBodyWithWebKit(buf, crlf);
                 buf->retrieveUntil(crlf + 2);
