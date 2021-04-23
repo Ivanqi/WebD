@@ -53,15 +53,15 @@ namespace webd
             std::string resolverLeft_{"{{"};
             std::string resolverRigth_{"}}"};
             bool leftFlag_{false};
-            unordered_map<string, string> field_;
+            const unordered_map<string, string> field_;
             Unicode resolverLeftUni_;
             Unicode resolverRigthUni_;
-            std::unordered_map<std::string, std::vector<int>> saveBc_;
+            unordered_map<std::string, std::vector<int>> saveBc_;
 
             TrieNode *root_;
 
         public:
-            TemplateReplace();
+            TemplateReplace(const unordered_map<string, string>& paramlist);
 
             ~TemplateReplace();
 

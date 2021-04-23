@@ -1,6 +1,7 @@
 #include "src/HttpContext.h"
+#include "src/StringUtil.h"
+#include "networker/base/Logging.h"
 #include <queue>
-#include <vector>
 #include <iostream>
 #include <sstream>
 using namespace webd;
@@ -55,7 +56,7 @@ bool HttpContext::processRequestLine(const char *begin, const char *end)
 
 string HttpContext::removeQuotationMarks(string str)
 {
-    return sUtil.Trim(sUtil.Trim(str, '\"'), '\'');
+    return StringUtil::Trim(StringUtil::Trim(str, '\"'), '\'');
 }
 
 bool HttpContext::processRequestBodyWithWebKit(Buffer *buf, const char *crlf) 
@@ -147,6 +148,7 @@ bool HttpContext::parseRequest(Buffer *buf, Timestamp receiveTime)
             }
         } else if (state_ == kExpectBody) { // 请求体
             const char *crlf = buf->findCRLF(); // 找\r\n
+            LOG_INFO << "crlf: " << crlf;
             if (crlf) {
                 processRequestBodyWithWebKit(buf, crlf);
                 buf->retrieveUntil(crlf + 2);

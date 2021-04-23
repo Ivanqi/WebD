@@ -2,7 +2,7 @@
 #define WEBD_TEMPLATE_ENGINE_H
 
 #include <sys/stat.h>
-#include <map>
+#include <unordered_map>
 #include <string>
 #include <unistd.h>
 #include <memory>
@@ -13,6 +13,7 @@
 #include <iostream>
 #include "networker/net/Buffer.h"
 #include "networker/base/MutexLock.h"
+#include "networker/base/Logging.h"
 #include "src/TemplateReplace.h"
 #include "src/TransCode.h"
 
@@ -29,9 +30,10 @@ namespace webd
             };
 
             typedef std::shared_ptr<tempInfo> tempInfoPtr;
-            std::map<std::string, tempInfoPtr> templateList;
+            std::unordered_map<std::string, tempInfoPtr> templateList;
             std::string tempDir_{""};
             MutexLock mutex_;
+            std::string defaultHtml{"index.html"};
         
         public:
             TemplateParse(const std::string path)
@@ -122,14 +124,18 @@ namespace webd
                 return true;
             }
 
-            bool parse(const std::string& filename, std::string& content)
+            bool parse(std::string& filename, std::string& content, const std::unordered_map<string, string>& paramlist)
             {
+                if (filename == "/") {
+                    filename = defaultHtml;
+                }
+
                 std::string absPath = tempDir_ + filename;
                 int ret = checkFile(filename);
 
                 if (!ret) return ret;
 
-                std::cout << "absPath: " << absPath << std::endl;
+                LOG_INFO << "absPath: " << absPath;
 
                 if (templateList.find(absPath) == templateList.end()) {
                     return false;
@@ -140,7 +146,7 @@ namespace webd
                 Buffer buf = tempInfo->content;
                 content = buf.retrieveAllAsString();
                 
-                TemplateReplace replace;
+                TemplateReplace replace(paramlist);
 
                 content = replace.matchByBm(content);
                 return true;
@@ -150,7 +156,7 @@ namespace webd
         private:
             bool readFile(Buffer& content, const std::string path)
             {
-
+                std::cout << "path: " << path << std::endl;
                 std::ifstream fin(path, std::ios::binary);
 
                 unsigned long len = static_cast<unsigned int>(fin.seekg(0, std::ios::end).tellg());

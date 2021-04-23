@@ -2,7 +2,6 @@
 #define WEBD_HTTPCONTEXT_H
 
 #include "src/HttpRequest.h"
-#include "src/StringUtil.h"
 #include "networker/net/Buffer.h"
 using namespace networker;
 using namespace networker::net;
@@ -28,7 +27,6 @@ namespace webd
             std::string tmpKey{""};
             const char eqtag{'='};
             const char ampetag{'&'};
-            StringUtil sUtil;
         
         public:
             HttpContext()

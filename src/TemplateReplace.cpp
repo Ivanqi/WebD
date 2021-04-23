@@ -6,16 +6,13 @@
 using std::queue;
 using namespace webd;
 
-TemplateReplace::TemplateReplace()
+TemplateReplace::TemplateReplace(const unordered_map<string, string>& paramlist)
+    :field_(paramlist)
 {
     root_ = new TrieNode;
 
     resolverLeftUni_ = TransCode::decode(resolverLeft_);
     resolverRigthUni_ = TransCode::decode(resolverRigth_);
-
-    field_["class_name"] = "二年纪";
-    field_["date"] = "2020-01-02 12:00:00";
-    field_["title"] = "交易";
 }
 
 
@@ -177,7 +174,7 @@ string TemplateReplace::matchReplace(string text)
                 string tmpStr = text.substr(preFoud + leftLen, (found - preFoud - rightLen));
 
                 if (field_.find(tmpStr) != field_.end()) {
-                    string value = field_[tmpStr];
+                    string value = field_.at(tmpStr);
                     text.replace(preFoud, found - preFoud + rightLen, value.c_str());
                 }
                 leftFlag_ = false;
@@ -231,7 +228,7 @@ string TemplateReplace::matchByBm(string text)
                 string tmpStr = text.substr(leftPos + leftLen, rightPos - leftPos - rightLen);
                 tmpStr = StringUtil::Trim(tmpStr, ' ');
                 if (field_.find(tmpStr) != field_.end()) {
-                    tmpStr = field_[tmpStr];
+                    tmpStr = field_.at(tmpStr);;
                 }
                 text.replace(leftPos, rightPos - leftPos + rightLen, tmpStr.c_str());
                 i = 0;

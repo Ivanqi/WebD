@@ -2,6 +2,7 @@
 #include "src/HttpServer.h"
 #include "src/HttpRequest.h"
 #include "src/HttpResponse.h"
+#include "src/StringUtil.h"
 #include "networker/base/Thread.h"
 #include "networker/net/EventLoop.h"
 #include "networker/base/Logging.h"
@@ -63,34 +64,47 @@ void Entry::onRequest(const HttpRequest& req, HttpResponse* resp)
 {
     std::string context;
 
-    string path = (req.path()[0] == '/' && req.path().size() > 1) ? req.path().substr(1) : req.path();
+    string path = req.path();
     
-    parse_->parse(path, context);
+    bool ret = parse_->parse(path, context, req.paramlist());
 
-    if (req.path() == "/" || req.path() == "/index.html" || req.path() == "/post.html") {
+    if (ret) {
         resp->setStatusCode(HttpResponse::k200OK);
         resp->setStatusMessage("OK");
         resp->setContentType("text/html");
         resp->addHeader("Server", "HttpServer");
 
-        string now = Timestamp::now().toFormattedString();
         resp->setBody(context);
-    } else if (req.path() == "/favicon.ico") {
-        resp->setStatusCode(HttpResponse::k200OK);
-        resp->setStatusMessage("OK");
-        resp->setContentType("image/png");
-        // resp->setBody(string(favicon, sizeof(favicon)));
-    } else if (req.path() == "/hello") {
-        resp->setStatusCode(HttpResponse::k200OK);
-        resp->setStatusMessage("OK");
-        resp->setContentType("text/plain");
-        resp->addHeader("Server", "HttpServer");
-        resp->setBody("hello, world!\n");
     } else {
         resp->setStatusCode(HttpResponse::k404NotFound);
         resp->setStatusMessage("Not Found");
         resp->setCloseConnection(true);
     }
+
+    // if (req.path() == "/" || req.path() == "/index.html" || req.path() == "/post.html") {
+    //     resp->setStatusCode(HttpResponse::k200OK);
+    //     resp->setStatusMessage("OK");
+    //     resp->setContentType("text/html");
+    //     resp->addHeader("Server", "HttpServer");
+
+    //     string now = Timestamp::now().toFormattedString();
+    //     resp->setBody(context);
+    // } else if (req.path() == "/favicon.ico") {
+    //     resp->setStatusCode(HttpResponse::k200OK);
+    //     resp->setStatusMessage("OK");
+    //     resp->setContentType("image/png");
+    //     // resp->setBody(string(favicon, sizeof(favicon)));
+    // } else if (req.path() == "/hello") {
+    //     resp->setStatusCode(HttpResponse::k200OK);
+    //     resp->setStatusMessage("OK");
+    //     resp->setContentType("text/plain");
+    //     resp->addHeader("Server", "HttpServer");
+    //     resp->setBody("hello, world!\n");
+    // } else {
+    //     resp->setStatusCode(HttpResponse::k404NotFound);
+    //     resp->setStatusMessage("Not Found");
+    //     resp->setCloseConnection(true);
+    // }
 }
 
 void Entry::asyncOutput(const char *msg, int len)
@@ -153,8 +167,6 @@ void Entry::setLogging(string logDir, const string& logLevel)
     Logger::setLogLevel(getLogLevel(logLevel));
     Logger::setOutput(&Entry::asyncOutput);
     
-    std::cout << "logDir: " << logDir << std::endl;
-
     g_asyncLog_.reset(new AsyncLogging(logDir, kRollSize_));
     g_asyncLog_->start();
 }
