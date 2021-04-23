@@ -158,8 +158,11 @@ string TemplateReplace::matchReplace(string text)
 
     int leftLen = resolverLeft_.length();
     int rightLen = resolverRigth_.length();
+    int textLen = text.length();
+    int i = 0;
 
     while (flag) {
+        if (textLen - i <= 0) flag = false;
         if (!leftFlag_) {
             if (text.find(resolverLeft_) != string::npos) {
                 found = text.find(resolverLeft_);
@@ -182,6 +185,8 @@ string TemplateReplace::matchReplace(string text)
                 flag = false;
             }
         }
+
+        i++;
     }
 
     return text;
@@ -194,10 +199,14 @@ string TemplateReplace::matchByBm(string text)
 
     int leftLen = resolverLeft_.length();
     int rightLen = resolverRigth_.length();
+    int textLen = text.length();
+    int i = 0;
+
     while (flag) {
+        if (textLen - i <= 0) flag = false;
         Unicode textUni = TransCode::decode(text);
         if (!leftFlag_) {
-            found = BM(textUni, resolverLeftUni_);
+            found = BM(textUni, resolverLeftUni_, resolverLeft_);
             if (found != -1) {
                 leftFlag_ = true;
             } else {
@@ -205,7 +214,7 @@ string TemplateReplace::matchByBm(string text)
             }
         } else {
             int preFoud = found;
-            found = BM(textUni, resolverRigthUni_);
+            found = BM(textUni, resolverRigthUni_, resolverRigth_);
             if (leftFlag_ && found != -1) {
                 
                 int leftPos = 0;
@@ -222,14 +231,17 @@ string TemplateReplace::matchByBm(string text)
                 string tmpStr = text.substr(leftPos + leftLen, rightPos - leftPos - rightLen);
                 tmpStr = StringUtil::Trim(tmpStr, ' ');
                 if (field_.find(tmpStr) != field_.end()) {
-                    string value = field_[tmpStr];
-                    text.replace(leftPos, rightPos - leftPos + rightLen, value.c_str());
+                    tmpStr = field_[tmpStr];
                 }
+                text.replace(leftPos, rightPos - leftPos + rightLen, tmpStr.c_str());
+                i = 0;
                 leftFlag_ = false;
             } else {
                 flag = false;
             }
         }
+
+        i++;
     }
 
     return text;
@@ -267,7 +279,6 @@ string TemplateReplace::match(Unicode::const_iterator begin, Unicode::const_iter
         while (tmp != NULL && tmp != root_) {
             if (tmp->isEnding == true) {
                 int pos = i - tmp->length + len;
-                // std::cout << "匹配起始下标: " << "i: " << i  << " | citer: " << (*citer) << " | pos: " << pos << "; 长度: " << tmp->length << std::endl;
                 check[pos] = tmp->length;
             }
             tmp = tmp->fail;
@@ -367,10 +378,16 @@ int TemplateReplace::moveByGs(int j, int pLen, int *suffix, bool *prefix)
 }
 
 // bm 字符串替换算法
-int TemplateReplace::BM(Unicode sUni, Unicode patternUni)
+int TemplateReplace::BM(Unicode sUni, Unicode patternUni, std::string pattern)
 {
-    vector<int> bc(BM_MAX_SIZE, -1);
-    generateBc(patternUni, &bc);
+    vector<int> bc;
+    if (saveBc_.find(pattern) != saveBc_.end()) {
+        bc = saveBc_.find(pattern)->second;
+    } else {
+        vector<int> tmp(BM_MAX_SIZE, -1);
+        bc = tmp;
+        generateBc(patternUni, &bc);
+    }
 
     int sLen = sUni.size();
     int pLen = patternUni.size();

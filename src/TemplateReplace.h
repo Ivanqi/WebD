@@ -56,6 +56,7 @@ namespace webd
             unordered_map<string, string> field_;
             Unicode resolverLeftUni_;
             Unicode resolverRigthUni_;
+            std::unordered_map<std::string, std::vector<int>> saveBc_;
 
             TrieNode *root_;
 
@@ -105,7 +106,7 @@ namespace webd
             int moveByGs(int j, int pLen, int *suffix, bool *prefix);
 
             // bm 字符串替换算法
-            int BM(Unicode sUni, Unicode patternUni);
+            int BM(Unicode sUni, Unicode patternUni, std::string pattern);
     };
 };
 #endif

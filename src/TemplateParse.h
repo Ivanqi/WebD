@@ -12,6 +12,7 @@
 #include <fstream>
 #include <iostream>
 #include "networker/net/Buffer.h"
+#include "networker/base/MutexLock.h"
 #include "src/TemplateReplace.h"
 #include "src/TransCode.h"
 
@@ -30,7 +31,7 @@ namespace webd
             typedef std::shared_ptr<tempInfo> tempInfoPtr;
             std::map<std::string, tempInfoPtr> templateList;
             std::string tempDir_{""};
-            
+            MutexLock mutex_;
         
         public:
             TemplateParse(const std::string path)
@@ -54,22 +55,25 @@ namespace webd
                 if (!ret) return ret;
                 tempInfoPtr fileInfo;
 
-                if (templateList.find(absPath) != templateList.end()) {
-                    fileInfo = templateList[absPath];
-                    if (buffer.st_mtime > fileInfo->modifiy_time) {
-                        fileInfo.reset(new tempInfo);
+                {
+                    MutexLockGuard lock(mutex_);
+                    if (templateList.find(absPath) != templateList.end()) {
+                        fileInfo = templateList[absPath];
+                        if (buffer.st_mtime > fileInfo->modifiy_time) {
+                            fileInfo.reset(new tempInfo);
+                            fileInfo->modifiy_time = buffer.st_mtime;
+                            bool ret = readFile(fileInfo->content, absPath);
+                            templateList[absPath] = fileInfo;
+                            return ret;
+                        }
+
+                    } else {
+                        fileInfo = tempInfoPtr(new tempInfo);
                         fileInfo->modifiy_time = buffer.st_mtime;
-
-                        return readFile(fileInfo->content, absPath);
+                        bool ret =  readFile(fileInfo->content, absPath);
+                        templateList[absPath] = fileInfo;
+                        return ret;
                     }
-
-                } else {
-                    fileInfo = tempInfoPtr(new tempInfo);
-                    fileInfo->modifiy_time = buffer.st_mtime;
-                    
-                    return readFile(fileInfo->content, absPath);
-
-                    templateList[absPath] = fileInfo;
                 }
 
                 return true;
@@ -93,22 +97,24 @@ namespace webd
                 std::string absPath;
 
                 while ((entry = readdir(dp)) != NULL) {
-                    if (!S_ISDIR(statbuf.st_mode)) {
-                        if (strcmp(".", entry->d_name) == 0 || strcmp("..", entry->d_name) == 0) {
-                           continue; 
-                        }
-
-                        std::string filename(entry->d_name);
-                        absPath = tempDir_ + filename;
-
-                        tempInfoPtr fileInfo(new tempInfo);
-                        fileInfo->modifiy_time = statbuf.st_mtime;
-
-                        if (!readFile(fileInfo->content, absPath)) {
-                            break;
-                        }
-                        templateList[absPath] = fileInfo;
+                    if (strcmp(".", entry->d_name) == 0 || strcmp("..", entry->d_name) == 0) {
+                        continue; 
                     }
+
+                    if (stat(entry->d_name, &statbuf) == -1) continue;
+                    if (S_ISDIR(statbuf.st_mode)) continue;
+
+                    std::string filename(entry->d_name);
+                    absPath = tempDir_ + filename;
+
+                    tempInfoPtr fileInfo(new tempInfo);
+
+                    fileInfo->modifiy_time = statbuf.st_mtime;
+
+                    if (!readFile(fileInfo->content, absPath)) {
+                        break;
+                    }
+                    templateList[absPath] = fileInfo;
                 }
 
                 closedir(dp);
@@ -142,7 +148,7 @@ namespace webd
             
         
         private:
-            bool readFile(Buffer &content, const std::string path)
+            bool readFile(Buffer& content, const std::string path)
             {
 
                 std::ifstream fin(path, std::ios::binary);
