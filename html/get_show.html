@@ -2,9 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>首页</title>
+    <title>Document</title>
     <style>
         html, body, h1, form, fieldset, legend, ol ,li{
             padding:0;
@@ -86,27 +84,24 @@
     </style>
 </head>
 <body>
-    <form id=payment name="input" action="/post_show.html" method="post">
-        <fieldset>
-            <legend>用户详细资料</legend>
-            <ol>
-                <li>
-                    <label for="name">用户名称：</label>
-                    <input type="text" id="name" name="user_name" placeholder="请输入用户名" required autofocus>
-                </li>
-                <li>
-                    <label for="email">邮件地址：</label>
-                    <input type="text" name="email" id="email" placeholder="example@163.com" required>
-                </li>
-                <li>
-                    <label for="phone">联系电话：</label>
-                    <input type="tel" placeholder="010-12345678" id="phone" name="phone">
-                </li>
-            </ol>
-        </fieldset>
-        <fieldset>
-            <button type="submit">提交</button>
-        </fieldset>
-    </form>
+<form id=payment>
+    <fieldset>
+        <legend>用户详细资料</legend>
+        <ol>
+            <li>
+                <label for="name">用户名称：</label>
+                {{user_name}}
+            </li>
+            <li>
+                <label for="email">邮件地址：</label>
+                {{email}}
+            </li>
+            <li>
+                <label for="phone">联系电话：</label>
+                {{phone}}
+            </li>
+        </ol>
+    </fieldset>
+</form>
 </body>
 </html>

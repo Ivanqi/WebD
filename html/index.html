@@ -4,12 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>首页</title>
+    <title>Index</title>
+    <style>
+       #menu ul {list-style:none;margin:0px;} 
+       #menu ul li {float:left; margin: 5px;} 
+    </style>
 </head>
 <body>
-    <form name="input" action="/post.html" method="get">
-        Username: <input type="text" name="user">
-        <input type="submit" value="Submit">
-    </form>
+    <div id="menu"> 
+        <ul> 
+            <li><a href="/get.html">Get页面</a></li> 
+            <li><a href="/post.html">Post页面</a></li> 
+        </ul> 
+    </div>
 </body>
 </html>

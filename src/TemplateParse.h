@@ -165,7 +165,7 @@ namespace webd
                     return false;
                 }
 
-                Buffer buf;
+                Buffer buf(len);
                 fin.seekg(0, std::ios::beg).read(buf.beginWrite(), len);
                 fin.close();
 

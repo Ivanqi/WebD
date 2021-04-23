@@ -2,6 +2,7 @@
 #define WEBD_HTTPREQUEST_H
 #include "networker/base/Timestamp.h"
 #include "networker/base/Types.h"
+#include "networker/base/Logging.h"
 
 #include <unordered_map>
 #include <stdio.h>
@@ -11,6 +12,18 @@ using std::string;
 using namespace networker;
 namespace webd
 {
+    // 解决传输中文问题的编码
+    static const char safe[] = {
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,
+        0,0,0,0,0,0,0,1,0,0,1,1,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,1,1,1,1,
+        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,1,0,1,1,1,1,1,1,1,1,
+        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,0
+    };
+
     class HttpRequest
     {
         public:
@@ -37,12 +50,13 @@ namespace webd
             Timestamp receiveTime_;
             std::unordered_map<string, string> headers_;
             std::unordered_map<string , string> paramlist_;
+
         
         public:
             HttpRequest()
                 :method_(kInvalid), version_(kUnknown)
             {
-
+                
             }
 
             void setVersion(Version v)
@@ -148,6 +162,7 @@ namespace webd
                 while (!value.empty() && isspace(value[value.size() - 1])) {
                     value.resize(value.size() - 1);
                 }
+                LOG_INFO << "field: " << field << " | value: " << value;
                 headers_[field] = value;
             }
 
@@ -165,10 +180,64 @@ namespace webd
             {
                 return headers_;
             }
+            
+            std::string urlEncode(const std::string &uri)
+            {
+                string ret;
+                const unsigned char *ptr = (const unsigned char *)uri.c_str();
+                ret.reserve(uri.length());
+
+                for (; *ptr ; ++ptr) {
+                    if (!safe[*ptr]) {
+                        char buf[5];
+                        memset(buf, 0, 5);
+                        snprintf(buf, 5, "%%%X", (*ptr)); 
+                        ret.append(buf);
+                    } else if (*ptr == ' ') {
+                        ret += '+'; 
+                    } else {
+                        ret += *ptr;
+                    }
+                }
+                return ret;
+            }
+
+            std::string urlDecode(const std::string &uri)
+            {
+                const unsigned char *ptr = (const unsigned char *)uri.c_str();
+                string ret;
+                ret.reserve(uri.length());  
+
+                for (; *ptr; ++ptr) {
+                    if (*ptr == '%') {
+                        if (*(ptr + 1)) {
+                            char a = *(ptr + 1);
+                            char b = *(ptr + 2);
+                            if (!((a >= 0x30 && a < 0x40) || (a >= 0x41 && a < 0x47))) continue;
+                            if (!((b >= 0x30 && b < 0x40) || (b >= 0x41 && b < 0x47))) continue;
+                            char buf[3];
+                            buf[0] = a;
+                            buf[1] = b;
+                            buf[2] = 0;
+                            ret += (char)strtoul(buf, NULL, 16);
+                            ptr += 2;
+                            continue;
+                        }
+                    }
+
+                    if (*ptr == '+') {  
+                        ret += ' ';
+                        continue;  
+                    }  
+                    ret += *ptr;  
+                }
+                return ret; 
+            }
 
             void setParamlist(string key, string val) 
             {
-                paramlist_[key] = val;
+                
+                paramlist_[key] = urlDecode(val);
             }
 
             const std::unordered_map<string, string>& paramlist() const
