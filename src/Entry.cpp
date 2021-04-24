@@ -9,6 +9,7 @@
 #include "networker/base/AsyncLogging.h"
 #include "src/Configure.h"
 
+
 using namespace webd;
 using namespace std::placeholders;
 
@@ -17,7 +18,20 @@ std::unique_ptr<AsyncLogging> g_asyncLog_;
 Entry::Entry()
     : kRollSize_(500 * 1000 * 1000), parse_(new TemplateParse("/"))
 {
-
+    MimeType[".html"] = "text/html";
+    MimeType[".avi"] = "video/x-msvideo";
+    MimeType[".bmp"] = "image/bmp";
+    MimeType[".c"] = "text/plain";
+    MimeType[".doc"] = "application/msword";
+    MimeType[".gif"] = "image/gif";
+    MimeType[".gz"] = "application/x-gzip";
+    MimeType[".htm"] = "text/html";
+    MimeType[".ico"] = "image/x-icon";
+    MimeType[".jpg"] = "image/jpeg";
+    MimeType[".png"] = "image/png";
+    MimeType[".txt"] = "text/plain";
+    MimeType[".mp3"] = "audio/mp3";
+    MimeType["default"] = "text/html";
 }
 
 void Entry::start(char* argv[])
@@ -69,24 +83,30 @@ void Entry::onRequest(const HttpRequest& req, HttpResponse* resp)
 
     LOG_INFO << "path:" << path << "ret:" << ret;
 
+    size_t found = path.find('.');
+
+    string ContentType;
+    ContentType = MimeType["default"];
+
+    if (found != std::string::npos) {
+        string suffix = path.substr(found);
+        LOG_INFO << suffix;
+        if (MimeType.find(suffix) != MimeType.end()) {
+            ContentType = MimeType[suffix];
+        }
+    } 
+
     if (ret) {
         resp->setStatusCode(HttpResponse::k200OK);
         resp->setStatusMessage("OK");
-        resp->setContentType("text/html");
-        resp->addHeader("Server", "HttpServer");
+        resp->setContentType(ContentType);
+        resp->addHeader("Server", "WEBD");
+        resp->addHeader("Content-Length", "41687");
         resp->setBody(context);
 
-    } else if (req.path() == "/favicon.ico") {
-        resp->setStatusCode(HttpResponse::k200OK);
-        resp->setStatusMessage("OK");
-        resp->setContentType("image/png");
-        resp->setBody(string(favicon, sizeof(favicon)));
     } else {
         resp->setStatusCode(HttpResponse::k404NotFound);
         resp->setStatusMessage("Not Found");
-        resp->setStatusMessage("Error");
-        resp->setContentType("text/html");
-        resp->setBody("Not Found");
         resp->setCloseConnection(true);
     }
 }

@@ -106,6 +106,8 @@ namespace webd
             constexpr hash_t static basis_{0xCBF29CE484222325ull};
             std::unique_ptr<TemplateParse> parse_;
 
+            std::unordered_map<std::string, std::string> MimeType;
+
         public:
             Entry();
 
