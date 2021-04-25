@@ -19,6 +19,7 @@ void Entry::start(char* argv[])
 {
     int numTreads = 0;
     Configure conf(argv[1]);	//加载配置文件
+    return;
 
     string confNumTreads = conf.getConf("numTreads");
     string confIp = conf.getConf("ip");

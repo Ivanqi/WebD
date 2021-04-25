@@ -15,7 +15,8 @@ namespace webd
     {
         private:
             std::map<std::string, std::string> conf_;
-            const char eqtag{'='};
+            const char eqTag{'='};
+            const char remarksTag{'#'};
 
         public:
             Configure(std::string confPath)
@@ -25,8 +26,10 @@ namespace webd
                 std::string key, val;
 
                 while(getline(ifs, line)) {
-
-                    size_t found = line.find(eqtag);
+                    
+                    if (line.find(remarksTag) != std::string::npos) continue;
+                    
+                    size_t found = line.find(eqTag);
                     if (found != std::string::npos) {
                         key = line.substr(0, found);
                         val = line.substr(found + 1);
