@@ -65,7 +65,7 @@ set(src_dir
     src/TemplateReplace.cpp
 )
 
-add_executable(webd ${src_dir} src/main.cpp)
+add_executable(webd ${src_dir} ./main.cpp)
 
 # target_link_libraries 这个指令可以用来添加需要链接的共享库
 target_link_libraries(webd ${networker_net})
