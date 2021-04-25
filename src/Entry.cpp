@@ -15,25 +15,6 @@ using namespace std::placeholders;
 
 std::unique_ptr<AsyncLogging> g_asyncLog_;
 
-Entry::Entry()
-    : kRollSize_(500 * 1000 * 1000), parse_(new TemplateParse("/"))
-{
-    MimeType[".html"] = "text/html";
-    MimeType[".avi"] = "video/x-msvideo";
-    MimeType[".bmp"] = "image/bmp";
-    MimeType[".c"] = "text/plain";
-    MimeType[".doc"] = "application/msword";
-    MimeType[".gif"] = "image/gif";
-    MimeType[".gz"] = "application/x-gzip";
-    MimeType[".htm"] = "text/html";
-    MimeType[".ico"] = "image/x-icon";
-    MimeType[".jpg"] = "image/jpeg";
-    MimeType[".png"] = "image/png";
-    MimeType[".txt"] = "text/plain";
-    MimeType[".mp3"] = "audio/mp3";
-    MimeType["default"] = "text/html";
-}
-
 void Entry::start(char* argv[])
 {
     int numTreads = 0;
@@ -76,33 +57,34 @@ void Entry::start(char* argv[])
 void Entry::onRequest(const HttpRequest& req, HttpResponse* resp)
 {
     std::string context;
+    string suffix;
 
     string path = req.path();
-    
-    bool ret = parse_->parse(path, context, req.paramlist());
-
-    LOG_INFO << "path:" << path << "ret:" << ret;
+    parse_->setAllowMimeType(allowMimeType_);
+    parse_->setParamlist(req.paramlist());
 
     size_t found = path.find('.');
-
-    string ContentType;
-    ContentType = MimeType["default"];
-
     if (found != std::string::npos) {
-        string suffix = path.substr(found);
-        LOG_INFO << suffix;
-        if (MimeType.find(suffix) != MimeType.end()) {
-            ContentType = MimeType[suffix];
-        }
-    } 
+        suffix = path.substr(found);
+    }
+    
+    bool ret = parse_->parse(path, context, suffix);
+
+    string ContentType = mimeType_["default"];
+    if (mimeType_.find(suffix) != mimeType_.end()) {
+        ContentType = mimeType_[suffix];
+    }
 
     if (ret) {
         resp->setStatusCode(HttpResponse::k200OK);
         resp->setStatusMessage("OK");
         resp->setContentType(ContentType);
         resp->addHeader("Server", "WEBD");
-        resp->addHeader("Content-Length", "41687");
         resp->setBody(context);
+
+        if (allowMimeType_.find(suffix) == allowMimeType_.end()) {
+            resp->setCloseConnection(true);
+        }
 
     } else {
         resp->setStatusCode(HttpResponse::k404NotFound);

@@ -4,6 +4,10 @@
 #include "src/HttpResponse.h"
 #include <any>
 #include <iostream>
+#include <sstream>
+#include <fstream>
+#include <ios>
+using namespace std;
 
 using namespace webd;
 void defaultHttpCallback(const HttpRequest&, HttpResponse* resp)
@@ -59,7 +63,7 @@ void HttpServer::onRequest(const TcpConnectionPtr& conn, const HttpRequest& req)
 
     Buffer buf;
     response.appendToBuffer(&buf);
-    conn->send(&buf);
+    conn->send(buf.peek(), buf.readableBytes());
 
     if (response.closeConnection()) {
         conn->shutdown();

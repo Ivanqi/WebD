@@ -34,12 +34,25 @@ namespace webd
             std::string tempDir_{""};
             MutexLock mutex_;
             std::string defaultHtml{"index.html"};
+            std::unordered_map<std::string, bool> allowMimeType_;
+            std::unordered_map<string, string> paramlist_;
+
         
         public:
             TemplateParse(const std::string path)
                 :tempDir_(path)
             {
 
+            }
+
+            void setAllowMimeType(std::unordered_map<std::string, bool>& allowMimeType)
+            {
+                allowMimeType_ = allowMimeType;
+            }
+
+            void setParamlist(const std::unordered_map<string, string>& paramlist)
+            {
+                paramlist_ = paramlist;
             }
 
             void setTempDIr(const std::string path)
@@ -124,7 +137,7 @@ namespace webd
                 return true;
             }
 
-            bool parse(std::string& filename, std::string& content, const std::unordered_map<string, string>& paramlist)
+            bool parse(std::string& filename, std::string& content, std::string& suffix)
             {
                 if (filename == "/") {
                     filename = defaultHtml;
@@ -145,10 +158,12 @@ namespace webd
 
                 Buffer buf = tempInfo->content;
                 content = buf.retrieveAllAsString();
-                
-                TemplateReplace replace(paramlist);
 
-                content = replace.matchByBm(content);
+                if (allowMimeType_.find(suffix) != allowMimeType_.end()) {
+                    TemplateReplace replace(paramlist_);
+                    content = replace.matchByBm(content);
+                }
+                
                 return true;
             }
             
@@ -158,20 +173,23 @@ namespace webd
             {
                 std::cout << "path: " << path << std::endl;
                 std::ifstream fin(path, std::ios::binary);
-
                 unsigned long len = static_cast<unsigned int>(fin.seekg(0, std::ios::end).tellg());
 
                 if (len <= 0) {
                     return false;
                 }
 
+                char ich;
                 Buffer buf(len);
-                fin.seekg(0, std::ios::beg).read(buf.beginWrite(), len);
+
+                fin.seekg(0);
+                while (fin.get(ich)) {
+                    buf.append(&ich, 1);
+                }
+
                 fin.close();
 
                 content.swap(buf);
-                content.hasWritten(len);
-
                 return true;
             }
     };
