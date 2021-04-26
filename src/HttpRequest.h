@@ -69,6 +69,12 @@ namespace webd
                 return version_;
             }
 
+            bool setMethod(const string& methodStr)
+            {
+                const char* methodStrChar = methodStr.c_str();
+                return setMethod(methodStrChar, methodStrChar + methodStr.length());
+            }
+
             bool setMethod(const char* start, const char* end)
             {
                 assert(method_ == kInvalid);
@@ -119,6 +125,12 @@ namespace webd
                 return result;
             }
 
+            void setPath(const string& pathStr)
+            {
+                const char* pathStrChar = pathStr.c_str();
+                setPath(pathStrChar, pathStrChar + pathStr.length());
+            }
+
             void setPath(const char* start, const char* end)
             {
                 path_.assign(start, end);
@@ -127,6 +139,12 @@ namespace webd
             const string& path() const
             {
                 return path_;
+            }
+
+            void setQuery(const string& queryStr)
+            {
+                const char* queryStrChar = queryStr.c_str();
+                setQuery(queryStrChar, queryStrChar + queryStr.length());
             }
 
             void setQuery(const char* start, const char* end)
@@ -235,13 +253,17 @@ namespace webd
 
             void setParamlist(string key, string val) 
             {
-                
                 paramlist_[key] = urlDecode(val);
             }
 
             const std::unordered_map<string, string>& paramlist() const
             {
                 return paramlist_;
+            }
+
+            void headerSwap(std::unordered_map<std::string,std::string> other)
+            {
+                headers_.swap(other);
             }
 
             void swap(HttpRequest& that)

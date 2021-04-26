@@ -63,6 +63,7 @@ set(src_dir
     src/HttpServer.cpp
     src/Entry.cpp
     src/TemplateReplace.cpp
+    src/Fastcgi.cpp
 )
 
 add_executable(webd ${src_dir} ./main.cpp)

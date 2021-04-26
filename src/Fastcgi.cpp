@@ -1,6 +1,7 @@
 #include "src/Fastcgi.h"
-#include "networker/net/Buffer.hEndian.h"
-#include <stdio.h>
+#include "networker/net/Buffer.h"
+#include "networker/base/Logging.h"
+#include "networker/net/Endian.h"
 
 using namespace networker;
 using namespace networker::net;
@@ -54,7 +55,7 @@ bool FastCgiCodec::onParams(const char *content, uint16_t length)
     if (length > 0) {
         paramsStream_.append(content, length);
     } else if (!parseAllParams()){
-        printf("FastCgiCodec::onParams parseAllParams() failed \n");
+        LOG_ERROR << "FastCgiCodec::onParams parseAllParams() failed";
         return false;
     }
     return true;
@@ -81,8 +82,6 @@ bool FastCgiCodec::parseAllParams()
         if (valueLen == static_cast<uint32_t>(-1)) {
             return false;
         }
-
-        printf("nameLen:%d, valueLen:%d\n", nameLen, valueLen);
 
         if (paramsStream_.readableBytes() >= nameLen + valueLen) {
             std::string name = paramsStream_.retrieveAsString(nameLen);
@@ -143,8 +142,7 @@ void FastCgiCodec::endRequest(Buffer *buf)
 
 void FastCgiCodec::respond(Buffer *response)
 {
-    if (response->readableBytes() < 65536 && response->prependableBytes() >= kRecordHeader)
-    {
+    if (response->readableBytes() < 65536 && response->prependableBytes() >= kRecordHeader) {
         RecordHeader header = {
             1,
             kFcgiStdout,
@@ -170,8 +168,6 @@ bool FastCgiCodec::parseRequest(Buffer *buf)
         memcpy(&header, buf->peek(), kRecordHeader);
         header.id = networkToHost16(header.id);
         header.length = networkToHost16(header.length);
-
-        printf("version = %d, type = %d\n", header.version, header.type);
 
         size_t total = kRecordHeader + header.length + header.padding;
 

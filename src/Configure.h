@@ -38,12 +38,12 @@ namespace webd
                 }
             }
 
-            std::string getConf(string key)
+            std::string getConf(string key, string defaultVal = "")
             {
                 if (conf_.find(key) != conf_.end()) {
                     return conf_[key];
                 } else {
-                    return "";
+                    return defaultVal;
                 }
             }
     };

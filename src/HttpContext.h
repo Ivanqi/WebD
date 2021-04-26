@@ -2,6 +2,7 @@
 #define WEBD_HTTPCONTEXT_H
 
 #include "src/HttpRequest.h"
+#include "src/Context.h"
 #include "networker/net/Buffer.h"
 using namespace networker;
 using namespace networker::net;
@@ -21,16 +22,14 @@ namespace webd
 
         private:
             HttpRequestParseState state_;
-            HttpRequest request_;
-            bool webkitfromState_{false};
-            std::string webkitChar{"WebKitForm"};
-            std::string tmpKey{""};
+            HttpRequest *request_;
             const char eqtag{'='};
             const char ampetag{'&'};
+            Context cxt_;
         
         public:
             HttpContext()
-                :state_(kExpectRequestLine)
+                :state_(kExpectRequestLine), cxt_(Context(request_)) 
             {
             }
 
@@ -46,30 +45,24 @@ namespace webd
             {
                 state_ = kExpectRequestLine;
                 HttpRequest dummy;
-                request_.swap(dummy);
+                request_->swap(dummy);
             }
 
             const HttpRequest& request() const
             {
-                return request_;
+                return *request_;
             }
 
             HttpRequest& request()
             {
-                return request_;
+                return *request_;
             }
         
         private:
 
-            bool processRequestBodyWithWebKit(Buffer *buf, const char *crlf);
-
-            bool processRequestBodyWithCurl(string str, size_t eqtagfound, size_t ampetagfound);
-
             void setQueryParams(string queryStr);
 
             bool processRequestLine(const char* begin, const char* end);
-
-            string removeQuotationMarks(string str);
     };
 };
 

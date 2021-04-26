@@ -2,7 +2,7 @@
 #define WEBD_TEST_FASTCGI_H
 
 #include "networker/net/TcpConnection.h"
-#include <map>
+#include <unordered_map>
 using namespace networker;
 using namespace networker::net;
 
@@ -11,7 +11,7 @@ namespace webd
     class FastCgiCodec
     {
         public:
-            typedef std::map<std::string, std::string> ParamMap;
+            typedef std::unordered_map<std::string, std::string> ParamMap;
             typedef std::function<void (const TcpConnectionPtr& conn, ParamMap&, Buffer*)> Callback;
 
         private:

@@ -26,6 +26,7 @@ void Entry::start(char* argv[])
     string webRoot = conf.getConf("web_root");
     string logLevel = conf.getConf("log_level");
     string logDir = conf.getConf("log_dir");
+    string serverMode = conf.getConf("server_mode", "web");
 
     if (webRoot.empty()) {
         printf("Web Root 目录不存在");
@@ -44,7 +45,7 @@ void Entry::start(char* argv[])
     numTreads = confNumTreads.empty() ? numTreads : ::atoi(confNumTreads.c_str());
 
     EventLoop loop;
-    HttpServer server(&loop, InetAddress(confIp, atoi(confPort.c_str())), "webd");
+    HttpServer server(&loop, InetAddress(confIp, atoi(confPort.c_str())), "webd", serverMode);
 
     HttpServer::HttpCallback cb = std::bind(&Entry::onRequest, this, _1, _2);
     server.setHttpCallback(cb);

@@ -3,6 +3,8 @@
 
 #include "networker/net/TcpServer.h"
 #include "networker/net/EventLoop.h"
+#include "src/Fastcgi.h"
+
 using std::string;
 using namespace networker;
 using namespace networker::net;
@@ -20,9 +22,11 @@ namespace webd
         private:
             TcpServer server_;
             HttpCallback httpCallback_;
+            string cgimode_{"cgi"};
+            const string serverMode_;
         
         public:
-            HttpServer(EventLoop* loop, const InetAddress& listenAddr, const string& name, TcpServer::Option option = TcpServer::kNoReusePort);
+            HttpServer(EventLoop* loop, const InetAddress& listenAddr, const string& name, const string& mode, TcpServer::Option option = TcpServer::kNoReusePort);
 
             EventLoop* getLoop() const
             {
@@ -48,6 +52,8 @@ namespace webd
             void onMessage(const TcpConnectionPtr& conn, Buffer *buf, Timestamp receiveTime);
 
             void onRequest(const TcpConnectionPtr& , const HttpRequest&);
+
+            void fastcigOnRequest(const TcpConnectionPtr& conn, FastCgiCodec::ParamMap& params, Buffer *in);
     };
 };
 #endif
