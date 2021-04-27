@@ -73,11 +73,15 @@ namespace webd
 
             void setRequestBody(const std::string& bodyStr)
             {
-                std::vector<string> reqBody;
-                StringUtil::Split(bodyStr, reqBody, "\n");
+                if (bodyStr.find(cxt_.webkitChar_) != std::string::npos) {
+                    std::vector<string> reqBody;
+                    StringUtil::Split(bodyStr, reqBody, "\n");
        
-                for (size_t i = 0; i < reqBody.size(); i++) {
-                    cxt_.processRequestBodyWithWebKit(reqBody[i]);
+                    for (size_t i = 0; i < reqBody.size(); i++) {
+                        cxt_.processRequestBodyWithWebKit(reqBody[i]);
+                    }
+                } else {
+                    setQueryString(bodyStr);
                 }
             }
     };

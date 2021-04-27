@@ -15,7 +15,7 @@ http {
     keepalive_timeout  65;
 
     upstream webd_backend {
-        server localhost:19981;
+        server localhost:8000;
         keepalive 32;
     }
 

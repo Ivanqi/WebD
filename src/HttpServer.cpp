@@ -66,7 +66,6 @@ void HttpServer::fastcigOnRequest(const TcpConnectionPtr& conn, FastCgiCodec::Pa
 	string uri = params["REQUEST_URI"];
 
     HttpRequest req;
-	Buffer response;
     FastCgiContext cgiCxt(&req);
 
     cgiCxt.setMethod(params["REQUEST_METHOD"]);
@@ -75,27 +74,22 @@ void HttpServer::fastcigOnRequest(const TcpConnectionPtr& conn, FastCgiCodec::Pa
     cgiCxt.setVersion(params["SERVER_PROTOCOL"]);
     cgiCxt.headerSwap(params);
 
-    std::cout << "methodString:" << req.methodString() << std::endl;
-    std::cout << "pathString:" << req.path() << std::endl;
-    std::cout << "queryString:" << req.query() << std::endl;
-
 
     if (in->readableBytes() > 0) {
-        cgiCxt.setRequestBody(in->retrieveAllAsString());
+        std::string requestBody = in->retrieveAllAsString();
+        cgiCxt.setRequestBody(requestBody);
 	}
 
+    const string& connection = req.getHeader("HTTP_CONNECTION");
+    bool close = connection == "close" || (req.getVersion() == HttpRequest::kHttp10 && connection != "keep-alive");
+    
+    HttpResponse response(close);
+    httpCallback_(req, &response);
+    Buffer buf;
+    response.appendToBuffer(&buf);
 
-	response.append("Context->Type: text/plain\r\n\r\n");
-
-    const string kPath = "/fastcgi/";
-	if (uri.find(kPath) == 0) {
-		response.append("good request!");
-	} else {
-		response.append("bad request!");
-	}
-
-	FastCgiCodec::respond(&response);
-	conn->send(&response);
+    FastCgiCodec::respond(&buf);
+	conn->send(&buf);
 }
 
 void HttpServer::onRequest(const TcpConnectionPtr& conn, const HttpRequest& req)

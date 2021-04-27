@@ -19,7 +19,6 @@ namespace webd
     {
         private:
             HttpRequest *request_;
-            std::string webkitChar_{"WebKitForm"};
             bool webkitfromState_{false};
             std::string tmpKey{""};
             const char eqtag{'='};
@@ -27,6 +26,8 @@ namespace webd
             const int enterNum{13};
         
         public:
+            std::string webkitChar_{"WebKitForm"};
+
             Context(HttpRequest* request)
                 :request_(request)
             {
