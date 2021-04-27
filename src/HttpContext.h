@@ -4,6 +4,7 @@
 #include "src/HttpRequest.h"
 #include "src/Context.h"
 #include "networker/net/Buffer.h"
+#include <memory>
 using namespace networker;
 using namespace networker::net;
 
@@ -22,14 +23,14 @@ namespace webd
 
         private:
             HttpRequestParseState state_;
-            HttpRequest *request_;
+            std::shared_ptr<HttpRequest> request_;
             const char eqtag{'='};
             const char ampetag{'&'};
             Context cxt_;
         
         public:
             HttpContext()
-                :state_(kExpectRequestLine), cxt_(Context(request_)) 
+                :state_(kExpectRequestLine), request_(new HttpRequest()), cxt_(Context(request_.get())) 
             {
             }
 

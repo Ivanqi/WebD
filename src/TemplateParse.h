@@ -171,7 +171,6 @@ namespace webd
         private:
             bool readFile(Buffer& content, const std::string path)
             {
-                std::cout << "path: " << path << std::endl;
                 std::ifstream fin(path, std::ios::binary);
                 unsigned long len = static_cast<unsigned int>(fin.seekg(0, std::ios::end).tellg());
 
