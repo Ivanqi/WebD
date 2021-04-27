@@ -2,6 +2,7 @@
 #define WEBD_CONTEXT_H
 #include "src/HttpRequest.h"
 #include "src/StringUtil.h"
+#include "src/TransCode.h"
 #include "networker/net/Buffer.h"
 
 #include <string>
@@ -18,11 +19,12 @@ namespace webd
     {
         private:
             HttpRequest *request_;
-            std::string webkitChar{"WebKitForm"};
+            std::string webkitChar_{"WebKitForm"};
             bool webkitfromState_{false};
             std::string tmpKey{""};
             const char eqtag{'='};
             const char ampetag{'&'};
+            const int enterNum{13};
         
         public:
             Context(HttpRequest* request)
@@ -38,7 +40,7 @@ namespace webd
 
             bool processRequestBodyWithWebKit(const char* start, const char *crlf) 
             {
-                const char *webkittag = std::search(start, crlf, webkitChar.begin(), webkitChar.end());
+                const char *webkittag = std::search(start, crlf, webkitChar_.begin(), webkitChar_.end());
                 bool webkitflag = (webkittag == crlf) ? false : true;
                 if (webkitflag) {
                     webkitfromState_ = true;
@@ -48,6 +50,24 @@ namespace webd
                     if (found != std::string::npos) {
                         tmpKey = str.substr(found + 2, (str.size() - found - 3));
                     } else if (!str.empty()){
+                        request_->setParamlist(removeQuotationMarks(tmpKey), removeQuotationMarks(str));
+                        webkitfromState_ = false;
+                    }
+                }
+                return true;
+            }
+
+            bool processRequestBodyWithWebKit(string str)
+            {
+                size_t found = str.find(webkitChar_);
+                bool webkitflag = (found != string::npos) ? true : false;
+                if (webkitflag) {
+                    webkitfromState_ = true;
+                } else if (webkitfromState_) {
+                    size_t found2 = str.find('=');
+                    if (found2 != string::npos) {
+                        tmpKey = str.substr(found2 + 2, (str.size() - found2 - 4));
+                    } else if ((int)str[0] != enterNum) {
                         request_->setParamlist(removeQuotationMarks(tmpKey), removeQuotationMarks(str));
                         webkitfromState_ = false;
                     }

@@ -81,8 +81,7 @@ void HttpServer::fastcigOnRequest(const TcpConnectionPtr& conn, FastCgiCodec::Pa
 
 
     if (in->readableBytes() > 0) {
-		string inStr = in->retrieveAllAsString();
-        // std::cout << inStr << std::endl;
+        cgiCxt.setRequestBody(in->retrieveAllAsString());
 	}
 
 

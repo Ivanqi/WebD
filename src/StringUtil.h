@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <functional>
 #include <stdio.h>
+#include <vector>
 namespace webd
 {
     class StringUtil
@@ -26,6 +27,29 @@ namespace webd
             inline static std::string& Trim(std::string &s, char x)
             {
                 return LTrim(RTrim(s, x), x);
+            }
+
+            inline static void Split(const std::string& src, std::vector<std::string>& res, const std::string& pattern, size_t maxsplit = std::string::npos)
+            {
+                res.clear();
+                size_t start = 0;
+                size_t end = 0;
+
+                std::string sub;
+
+                while (start < src.size()) {
+                    end = src.find_first_of(pattern, start);
+                    if (std::string::npos == end || res.size() >= maxsplit) {
+                        sub = src.substr(start);
+                        res.push_back(sub);
+                        return;
+                    }
+
+                    sub = src.substr(start, end - start);
+                    res.push_back(sub);
+                    start = end + 1;
+                }
+                return ;
             }
 
             template <class Uint16Container>

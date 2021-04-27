@@ -55,10 +55,8 @@ namespace webd
 
             void setVersion(string& version)
             {
-                std::cout << "version" << version << std::endl;
                 size_t found = version.find('.');
                 if (found != std::string::npos) {
-                    std::cout << "found: " << found << std::endl;
                     string m = version.substr(found + 1);
                     if (m[0] == '1') {
                         request_->setVersion(HttpRequest::kHttp11);
@@ -71,6 +69,16 @@ namespace webd
             void headerSwap(std::unordered_map<std::string,std::string> other)
             {
                 request_->headerSwap(other);
+            }
+
+            void setRequestBody(const std::string& bodyStr)
+            {
+                std::vector<string> reqBody;
+                StringUtil::Split(bodyStr, reqBody, "\n");
+       
+                for (size_t i = 0; i < reqBody.size(); i++) {
+                    cxt_.processRequestBodyWithWebKit(reqBody[i]);
+                }
             }
     };
 };
