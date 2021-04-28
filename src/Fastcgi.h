@@ -1,5 +1,5 @@
-#ifndef WEBD_TEST_FASTCGI_H
-#define WEBD_TEST_FASTCGI_H
+#ifndef WEBD_FASTCGI_H
+#define WEBD_FASTCGI_H
 
 #include "networker/net/TcpConnection.h"
 #include <unordered_map>
