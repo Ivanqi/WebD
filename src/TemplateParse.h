@@ -16,6 +16,7 @@
 #include "networker/base/Logging.h"
 #include "src/TemplateReplace.h"
 #include "src/TransCode.h"
+#include "src/ActiveFile.h"
 
 using namespace networker;
 using namespace networker::net;
@@ -36,7 +37,7 @@ namespace webd
             std::string defaultHtml{"index.html"};
             std::unordered_map<std::string, bool> allowMimeType_;
             std::unordered_map<string, string> paramlist_;
-
+            ActiveFile activeFile_;
         
         public:
             TemplateParse(const std::string path)
@@ -79,6 +80,7 @@ namespace webd
                             fileInfo->modifiy_time = buffer.st_mtime;
                             bool ret = readFile(fileInfo->content, absPath);
                             templateList[absPath] = fileInfo;
+                            activeFile_.push(absPath, buffer.st_mtime);
                             return ret;
                         }
 
@@ -87,6 +89,11 @@ namespace webd
                         fileInfo->modifiy_time = buffer.st_mtime;
                         bool ret =  readFile(fileInfo->content, absPath);
                         templateList[absPath] = fileInfo;
+                        bool activeRet = activeFile_.push(absPath, buffer.st_mtime);
+                        if (!activeRet) {
+                            std::string popStr = activeFile_.pop();
+                            templateList.erase(popStr);
+                        }
                         return ret;
                     }
                 }
@@ -129,11 +136,14 @@ namespace webd
                     if (!readFile(fileInfo->content, absPath)) {
                         break;
                     }
+
+                    activeFile_.push(absPath, statbuf.st_mtime);
                     templateList[absPath] = fileInfo;
                 }
 
                 closedir(dp);
                 chdir(currPath);
+
                 return true;
             }
 
@@ -148,7 +158,7 @@ namespace webd
 
                 if (!ret) return ret;
 
-                LOG_INFO << "absPath: " << absPath;
+                // LOG_INFO << "absPath: " << absPath;
 
                 if (templateList.find(absPath) == templateList.end()) {
                     return false;
