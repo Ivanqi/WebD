@@ -22,6 +22,7 @@ using namespace networker;
 using namespace networker::net;
 namespace webd
 {
+    // 线程不安全
     class TemplateParse
     {
         private:
@@ -46,7 +47,7 @@ namespace webd
 
             }
 
-            void setAllowMimeType(std::map<std::string, bool> allowMimeType)
+            void setAllowMimeType(std::map<std::string, bool>& allowMimeType)
             {
                 allowMimeType_ = allowMimeType;
             }
@@ -71,31 +72,29 @@ namespace webd
                 if (!ret) return ret;
                 tempInfoPtr fileInfo;
 
-                {
-                    MutexLockGuard lock(mutex_);
-                    if (templateList.find(absPath) != templateList.end()) {
-                        fileInfo = templateList[absPath];
-                        if (buffer.st_mtime > fileInfo->modifiy_time) {
-                            fileInfo.reset(new tempInfo);
-                            fileInfo->modifiy_time = buffer.st_mtime;
-                            bool ret = readFile(fileInfo->content, absPath);
-                            templateList[absPath] = fileInfo;
-                            activeFile_.push(absPath, buffer.st_mtime);
-                            return ret;
-                        }
 
-                    } else {
-                        fileInfo = tempInfoPtr(new tempInfo);
+                if (templateList.find(absPath) != templateList.end()) {
+                    fileInfo = templateList[absPath];
+                    if (buffer.st_mtime > fileInfo->modifiy_time) {
+                        fileInfo.reset(new tempInfo);
                         fileInfo->modifiy_time = buffer.st_mtime;
-                        bool ret =  readFile(fileInfo->content, absPath);
+                        bool ret = readFile(fileInfo->content, absPath);
                         templateList[absPath] = fileInfo;
-                        bool activeRet = activeFile_.push(absPath, buffer.st_mtime);
-                        if (!activeRet) {
-                            std::string popStr = activeFile_.pop();
-                            templateList.erase(popStr);
-                        }
+                        activeFile_.push(absPath, buffer.st_mtime);
                         return ret;
                     }
+
+                } else {
+                    fileInfo = tempInfoPtr(new tempInfo);
+                    fileInfo->modifiy_time = buffer.st_mtime;
+                    bool ret =  readFile(fileInfo->content, absPath);
+                    templateList[absPath] = fileInfo;
+                    bool activeRet = activeFile_.push(absPath, buffer.st_mtime);
+                    if (!activeRet) {
+                        std::string popStr = activeFile_.pop();
+                        templateList.erase(popStr);
+                    }
+                    return ret;
                 }
 
                 return true;
@@ -167,14 +166,15 @@ namespace webd
                 tempInfoPtr tempInfo = templateList[absPath];
 
                 Buffer buf = tempInfo->content;
+
                 content = buf.retrieveAllAsString();
 
                 if (allowMimeType_.find(suffix) != allowMimeType_.end()) {
                     TemplateReplace replace(paramlist_);
                     content = replace.matchByBm(content);
-                   
-                }
                 
+                }
+
                 return true;
             }
             

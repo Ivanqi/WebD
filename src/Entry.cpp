@@ -63,14 +63,18 @@ void Entry::onRequest(const HttpRequest& req, HttpResponse* resp)
     string suffix;
 
     string path = req.path();
-    parse_->setParamlist(req.paramlist());
 
     size_t found = path.find('.');
     if (found != std::string::npos) {
         suffix = path.substr(found);
     }
-    
-    bool ret = parse_->parse(path, context, suffix);
+
+    bool ret = false;
+    {
+        MutexLockGuard lock(mutex_);
+        parse_->setParamlist(req.paramlist());
+        ret = parse_->parse(path, context, suffix);
+    } 
 
     string ContentType = mimeType_["default"];
     if (mimeType_.find(suffix) != mimeType_.end()) {

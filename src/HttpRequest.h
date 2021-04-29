@@ -50,7 +50,6 @@ namespace webd
             Timestamp receiveTime_;
             std::map<string, string> headers_;
             std::map<string , string> paramlist_;
-
         
         public:
             HttpRequest()

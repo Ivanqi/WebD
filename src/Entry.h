@@ -6,6 +6,7 @@
 #include "networker/net/EventLoop.h"
 #include "networker/base/Logging.h"
 #include "networker/base/AsyncLogging.h"
+#include "networker/base/MutexLock.h"
 
 #include <functional>
 #include <utility>
@@ -29,6 +30,8 @@ namespace webd
             typedef std::uint64_t hash_t;
         private:
             int kRollSize_;
+            MutexLock mutex_;
+            
             constexpr hash_t static prime_{0x100000001B3ull};  
             constexpr hash_t static basis_{0xCBF29CE484222325ull};
             std::unique_ptr<TemplateParse> parse_;
