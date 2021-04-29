@@ -10,3 +10,5 @@ numTreads=0
 log_level=info
 # 日志目录
 log_dir=../logs/logger
+# 服务模式 默认: web。 其他模式:cgi
+server_mode=web

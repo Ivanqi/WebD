@@ -46,7 +46,7 @@ namespace webd
 
             }
 
-            void setAllowMimeType(std::unordered_map<std::string, bool>& allowMimeType)
+            void setAllowMimeType(std::unordered_map<std::string, bool> allowMimeType)
             {
                 allowMimeType_ = allowMimeType;
             }
