@@ -4,7 +4,7 @@
 #include "networker/base/Types.h"
 #include "networker/base/Logging.h"
 
-#include <unordered_map>
+#include <map>
 #include <stdio.h>
 #include <assert.h>
 
@@ -48,8 +48,8 @@ namespace webd
             string path_;
             string query_;
             Timestamp receiveTime_;
-            std::unordered_map<string, string> headers_;
-            std::unordered_map<string , string> paramlist_;
+            std::map<string, string> headers_;
+            std::map<string , string> paramlist_;
 
         
         public:
@@ -186,14 +186,14 @@ namespace webd
             string getHeader(const string& field) const
             {
                 string result;
-                std::unordered_map<string, string>::const_iterator it = headers_.find(field);
+                std::map<string, string>::const_iterator it = headers_.find(field);
                 if (it != headers_.end()) {
                     result = it->second;
                 }
                 return result;
             }
 
-            const std::unordered_map<string, string>& headers() const
+            const std::map<string, string>& headers() const
             {
                 return headers_;
             }
@@ -256,12 +256,12 @@ namespace webd
                 paramlist_[key] = urlDecode(val);
             }
 
-            const std::unordered_map<string, string>& paramlist() const
+            const std::map<string, string>& paramlist() const
             {
                 return paramlist_;
             }
 
-            void headerSwap(std::unordered_map<std::string,std::string> other)
+            void headerSwap(std::map<std::string,std::string> other)
             {
                 headers_.swap(other);
             }

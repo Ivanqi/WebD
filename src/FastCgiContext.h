@@ -66,7 +66,7 @@ namespace webd
                 }
             }
 
-            void headerSwap(std::unordered_map<std::string,std::string> other)
+            void headerSwap(std::map<std::string,std::string> other)
             {
                 request_->headerSwap(other);
             }

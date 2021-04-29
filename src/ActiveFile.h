@@ -3,34 +3,12 @@
 #include <array>
 #include <utility>
 #include <string>
-#include <unordered_map>
+#include <map>
 #include <iostream>
 namespace webd
 {
     #define MAX_SIZE 21
 
-    // template <class T>
-    // struct Less {
-    //     bool operator() (const T& left, const T& right) const {
-    //         return left > right;
-    //     }
-    // };
-
-    // template <class T>
-    // struct Greater {
-    //     bool operator() (const T& left, const T& right) const {
-    //         return left < right;
-    //     }
-    // };
-
-    // template <class T>
-    // struct swapCal {
-    //     void operator() (const T& left, const T& right, int leftIndex, int rigntIndex) const {
-    //         return;
-    //     }
-    // };
-
-    // template <class T, class Compare=Less<T>, class swapFunc=swapCal<T>>
     class ActiveFile
     {
         private:
@@ -48,7 +26,7 @@ namespace webd
             };
 
             std::array<std::string, MAX_SIZE> arr_{};
-            std::unordered_map<std::string, fileCache> arrMap_;
+            std::map<std::string, fileCache> arrMap_;
         
         public:
             ActiveFile()

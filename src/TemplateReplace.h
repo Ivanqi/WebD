@@ -2,10 +2,10 @@
 #define WEBD_TEMPLATE_REPLACE_H
 
 #include "TransCode.h"
-#include <unordered_map>
+#include <map>
 #include <string>
 #include <vector>
-using std::unordered_map;
+using std::map;
 using std::string;
 using std::vector;
 
@@ -17,7 +17,7 @@ namespace webd
     class TrieNode
     {
         public:
-            typedef unordered_map<TrieKey, TrieNode*> NextMap;
+            typedef map<TrieKey, TrieNode*> NextMap;
             TrieNode *fail; // 失败指针
             NextMap *next;
             UnicodeValueType word;
@@ -53,15 +53,15 @@ namespace webd
             std::string resolverLeft_{"{{"};
             std::string resolverRigth_{"}}"};
             bool leftFlag_{false};
-            const unordered_map<string, string> field_;
+            const map<string, string> field_;
             Unicode resolverLeftUni_;
             Unicode resolverRigthUni_;
-            unordered_map<std::string, std::vector<int>> saveBc_;
+            map<std::string, std::vector<int>> saveBc_;
 
             TrieNode *root_;
 
         public:
-            TemplateReplace(const unordered_map<string, string>& paramlist);
+            TemplateReplace(const map<string, string>& paramlist);
 
             ~TemplateReplace();
 
@@ -86,7 +86,7 @@ namespace webd
             int calcUnicodeLen(TrieKey uni);
 
 
-            string replaceFun(unordered_map<int, int> check, string text, char replaceStr);
+            string replaceFun(map<int, int> check, string text, char replaceStr);
 
             // 构建散列表
             void generateBc(Unicode p, vector<int>* bc);

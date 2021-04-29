@@ -6,7 +6,7 @@
 using std::queue;
 using namespace webd;
 
-TemplateReplace::TemplateReplace(const unordered_map<string, string>& paramlist)
+TemplateReplace::TemplateReplace(const map<string, string>& paramlist)
     :field_(paramlist)
 {
     root_ = new TrieNode;
@@ -189,6 +189,7 @@ string TemplateReplace::matchReplace(string text)
     return text;
 }
 
+// 时间复杂度: O(n ^ 2)
 string TemplateReplace::matchByBm(string text)
 {
     bool flag = true;
@@ -249,7 +250,7 @@ string TemplateReplace::match(Unicode::const_iterator begin, Unicode::const_iter
     TrieNode *ptNode = root_;
     int i = 0;
 
-    unordered_map<int, int> check;
+    map<int, int> check;
 
     for (Unicode::const_iterator citer = begin; citer != end; citer++) {
         /**
@@ -286,9 +287,9 @@ string TemplateReplace::match(Unicode::const_iterator begin, Unicode::const_iter
     return replaceFun(check, matchStr, replaceStr);
 }
 
-string TemplateReplace::replaceFun(unordered_map<int, int> check, string text, char replaceStr)
+string TemplateReplace::replaceFun(map<int, int> check, string text, char replaceStr)
 {
-    unordered_map<int, int>::iterator it;
+    map<int, int>::iterator it;
     for (it = check.begin(); it != check.end(); it++) {                
         text.replace(it->first, it->second, it->second, replaceStr);
     }

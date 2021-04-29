@@ -40,7 +40,9 @@ void Entry::start(char* argv[])
     LOG_INFO << "pid = " << getpid() << ", tid = " << CurrentThread::tid();
 
     parse_->setTempDIr(webRoot);
+    parse_->setAllowMimeType(allowMimeType_);
     parse_->preLoading();
+
     
     numTreads = confNumTreads.empty() ? numTreads : ::atoi(confNumTreads.c_str());
 
@@ -61,7 +63,6 @@ void Entry::onRequest(const HttpRequest& req, HttpResponse* resp)
     string suffix;
 
     string path = req.path();
-    parse_->setAllowMimeType(allowMimeType_);
     parse_->setParamlist(req.paramlist());
 
     size_t found = path.find('.');

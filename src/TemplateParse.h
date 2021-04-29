@@ -2,7 +2,7 @@
 #define WEBD_TEMPLATE_ENGINE_H
 
 #include <sys/stat.h>
-#include <unordered_map>
+#include <map>
 #include <string>
 #include <unistd.h>
 #include <memory>
@@ -31,12 +31,12 @@ namespace webd
             };
 
             typedef std::shared_ptr<tempInfo> tempInfoPtr;
-            std::unordered_map<std::string, tempInfoPtr> templateList;
+            std::map<std::string, tempInfoPtr> templateList;
             std::string tempDir_{""};
             MutexLock mutex_;
             std::string defaultHtml{"index.html"};
-            std::unordered_map<std::string, bool> allowMimeType_;
-            std::unordered_map<string, string> paramlist_;
+            std::map<std::string, bool> allowMimeType_;
+            std::map<string, string> paramlist_;
             ActiveFile activeFile_;
         
         public:
@@ -46,12 +46,12 @@ namespace webd
 
             }
 
-            void setAllowMimeType(std::unordered_map<std::string, bool> allowMimeType)
+            void setAllowMimeType(std::map<std::string, bool> allowMimeType)
             {
                 allowMimeType_ = allowMimeType;
             }
 
-            void setParamlist(const std::unordered_map<string, string>& paramlist)
+            void setParamlist(const std::map<string, string>& paramlist)
             {
                 paramlist_ = paramlist;
             }
@@ -172,6 +172,7 @@ namespace webd
                 if (allowMimeType_.find(suffix) != allowMimeType_.end()) {
                     TemplateReplace replace(paramlist_);
                     content = replace.matchByBm(content);
+                   
                 }
                 
                 return true;
