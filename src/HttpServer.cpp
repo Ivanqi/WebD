@@ -96,7 +96,6 @@ void HttpServer::onRequest(const TcpConnectionPtr& conn, const HttpRequest& req)
 {
     const string& connection = req.getHeader("Connection");
     bool close = connection == "close" || (req.getVersion() == HttpRequest::kHttp10 && connection != "Keep-Alive");
-
     HttpResponse response(close);
     httpCallback_(req, &response);
 

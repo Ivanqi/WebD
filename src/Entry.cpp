@@ -24,7 +24,7 @@ void Entry::start(char* argv[])
     string confIp = conf.getConf("ip");
     string confPort = conf.getConf("port");
     string webRoot = conf.getConf("web_root");
-    string logLevel = conf.getConf("log_level");
+    string logLevel = conf.getConf("log_level", "info");
     string logDir = conf.getConf("log_dir");
     string serverMode = conf.getConf("server_mode", "web");
 
