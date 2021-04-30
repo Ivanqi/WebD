@@ -63,4 +63,12 @@ make
 - 使用状态机解析了HTTP请求
 
 ## 并发模型
-![功能介绍](./docs/webd_model.png)
+![并发模型](./docs/webd_model.png)
+
+## 压测报告
+- [压测报告-cgi模式](./docs/压测报告-cgi模式.md)
+- [压测报告-web模式](./docs/压测报告-web模式.md)
+
+## 问题
+- 模板解析过于耗时，压力测试数据上不去
+- string字符串消耗内存比较多
