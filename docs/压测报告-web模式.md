@@ -1,3 +1,6 @@
+# 服务器信息
+- 两台 4核4G 的Centos 虚拟机进行测试
+
 # 无参数
 ## 单线程
 ### 短链接
@@ -420,6 +423,127 @@ Percentage of the requests served within a certain time (ms)
 
 ## 多线程
 ### GET 请求
+```
+[root@192 src]#  ab  -k -n 10000 -c 1000 'http://192.168.1.128:8000/get_show.html?user_name=%E5%B0%8F%E7%8E%8B&email=%E5%B9%BF%E4%B8%9C%E7%9C%81&phone=110119112'DD
+This is ApacheBench, Version 2.3 <$Revision: 1430300 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking 192.168.1.128 (be patient)
+Completed 1000 requests
+Completed 2000 requests
+Completed 3000 requests
+Completed 4000 requests
+Completed 5000 requests
+Completed 6000 requests
+Completed 7000 requests
+Completed 8000 requests
+Completed 9000 requests
+Completed 10000 requests
+Finished 10000 requests
+
+
+Server Software:        WEBD
+Server Hostname:        192.168.1.128
+Server Port:            8000
+
+Document Path:          /get_show.html?user_name=%E5%B0%8F%E7%8E%8B&email=%E5%B9%BF%E4%B8%9C%E7%9C%81&phone=110119112DD
+Document Length:        2880 bytes
+
+Concurrency Level:      1000
+Time taken for tests:   35.860 seconds
+Complete requests:      10000
+Failed requests:        0
+Write errors:           0
+Keep-Alive requests:    10000
+Total transferred:      29840000 bytes
+HTML transferred:       28800000 bytes
+Requests per second:    278.87 [#/sec] (mean)
+Time per request:       3585.958 [ms] (mean)
+Time per request:       3.586 [ms] (mean, across all concurrent requests)
+Transfer rate:          812.63 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0   39 264.9      0    3012
+Processing:    19 3375 713.5   3505    7607
+Waiting:        5 3375 713.5   3505    7607
+Total:         19 3414 820.8   3508    9293
+
+Percentage of the requests served within a certain time (ms)
+  50%   3508
+  66%   3580
+  75%   3674
+  80%   3716
+  90%   3814
+  95%   3850
+  98%   4143
+  99%   5980
+ 100%   9293 (longest request)
+```
+
+### POST请求
+```
+[root@192 ~]#  ab -k -n 100000 -c 1000 -p postdata.txt -T application/x-www-form-urlencoded "http://192.168.1.128:8000/post_show.html"
+This is ApacheBench, Version 2.3 <$Revision: 1430300 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking 192.168.1.128 (be patient)
+Completed 10000 requests
+Completed 20000 requests
+Completed 30000 requests
+Completed 40000 requests
+Completed 50000 requests
+Completed 60000 requests
+Completed 70000 requests
+Completed 80000 requests
+Completed 90000 requests
+Completed 100000 requests
+Finished 100000 requests
+
+
+Server Software:        WEBD
+Server Hostname:        192.168.1.128
+Server Port:            8000
+
+Document Path:          /post_show.html
+Document Length:        2879 bytes
+
+Concurrency Level:      1000
+Time taken for tests:   355.881 seconds
+Complete requests:      100000
+Failed requests:        0
+Write errors:           0
+Keep-Alive requests:    100000
+Total transferred:      298300000 bytes
+Total body sent:        27300000
+HTML transferred:       287900000 bytes
+Requests per second:    280.99 [#/sec] (mean)
+Time per request:       3558.810 [ms] (mean)
+Time per request:       3.559 [ms] (mean, across all concurrent requests)
+Transfer rate:          818.56 [Kbytes/sec] received
+                        74.91 kb/s sent
+                        893.47 kb/s total
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    3  53.7      0    1021
+Processing:    36 3538 360.6   3528    7815
+Waiting:        4 3538 360.6   3528    7815
+Total:         38 3541 364.7   3529    7815
+
+Percentage of the requests served within a certain time (ms)
+  50%   3529
+  66%   3587
+  75%   3622
+  80%   3647
+  90%   3757
+  95%   3829
+  98%   3901
+  99%   3949
+ 100%   7815 (longest request)
+```
 
 ### GET请求，不解析模板
 ```

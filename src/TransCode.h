@@ -1,7 +1,6 @@
 #ifndef WEBD_TRANSCODE_H
 #define WEBD_TRANSCODE_H
 
-#include "LocalVector.h"
 #include <vector>
 #include "StringUtil.h"
 
