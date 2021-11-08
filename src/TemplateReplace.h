@@ -54,9 +54,9 @@ namespace webd
             std::string resolverRigth_{"}}"};   // 右标签
             bool leftFlag_{false};
             const map<string, string> field_;
-            Unicode resolverLeftUni_;
-            Unicode resolverRigthUni_;
-            map<std::string, std::vector<int>> saveBc_;
+            Unicode resolverLeftUni_;           // 左标签的unicode编码
+            Unicode resolverRigthUni_;          // 右标签的unicode编码
+            map<std::string, std::vector<int>> saveBc_; // 存储坏字符哈希表
 
             TrieNode *root_;
 
@@ -90,6 +90,8 @@ namespace webd
 
             // 构建散列表
             void generateBc(Unicode p, vector<int>* bc);
+
+            void buildSaveBc(Unicode patternUni, std::string pattern);
 
             /**
              * 构建 suffix 和 prefix 数组

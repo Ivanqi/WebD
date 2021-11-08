@@ -52,6 +52,16 @@ make
 ```
 ./webd 配置目录
 ```
+## 将网站端口添加到防火墙的开放端口中，然后重新载入防火墙的配置即可
+```
+sudo firewall-cmd --zone=public --add-port=8000/tcp --permanent
+sudo firewall-cmd --reload
+sudo firewall-cmd --list-ports
+```
+
+## WebD结果展示
+[结果展示](./docs/结果展示页面.md)
+
 
 ## 技术点
 - 使用Epoll边沿触发的IO多路复用技术，非阻塞IO，使用Reactor模式
@@ -64,6 +74,9 @@ make
 
 ## 并发模型
 ![并发模型](./docs/webd_model.png)
+
+## Unicode和Utf-8互转
+[Unicode和Utf-8互转](./docs/unicode和utf-8互转.md)
 
 ## 压测报告
 - [压测报告-cgi模式](./docs/压测报告-cgi模式.md)

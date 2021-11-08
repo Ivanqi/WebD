@@ -86,3 +86,84 @@ UTF-8的编码规则很简单, 只有两条:
 因此, 第一个字节在前, 就是"大头方式"(Big endian), 第二个字节在前就是"小头方式"(Little endian).
 
 ## 计算机怎么知道某一个文件到底采用哪一种方式编码?(零宽度非换行空格(FEFF))
+Unicode规范中定义, 每一个文件的最前面分别加入一个表示编码顺序的字符, 这个字符的名字叫做"零宽度非换行空格"(ZERO WIDTH NO-BREAK SPACE), 用FEFF表示. 
+
+这正好是两个字节, 而且FF比FE大1.
+
+## Unicode与UTF-8之间的转换
+### 将一个字符的Unicode编码转换成UTF-8编码.
+```
+template <class Uint16ContainerConIter>
+void static unicodeToUtf8(Uint16ContainerConIter begin, Uint16ContainerConIter end, std::string& res)
+{
+    res.clear();
+    uint16_t ui;
+
+    while (begin != end) {
+        ui = *begin;
+
+        if (ui <= 0x7f) {
+            // U-00000000 - U-0000007F:  0xxxxxxx
+            res += char(ui);
+        } else if (ui <= 0x7ff) {
+            // U-00000080 - U-000007FF:  110xxxxx 10xxxxxx
+            res += char(((ui >> 6) & 0x1f) | 0xc0);
+            res += char((ui & 0x3f) | 0x80);
+        } else {
+            //  * U-00010000 - U-001FFFFF:  11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+            res += char(((ui >> 12) & 0x0f) | 0xe0);
+            res += char(((ui >> 6) & 0x3f) | 0x80);
+            res += char((ui & 0x3f) | 0x80);
+        }
+
+        begin++;
+    }
+}
+```
+### 将一个字符的UTF8编码转换成Unicode编码
+```
+template <class Uint16Container>
+bool static Utf8ToUnicode(const char* const str, size_t len, Uint16Container& vec)
+{
+    if (!str) {
+        return false;
+    }
+    char ch1, ch2;
+    uint16_t tmp;
+    vec.clear();
+
+    for (size_t i = 0; i < len;) {
+        if (!(str[i] & 0x80)) {     // 0xxxxxxx
+            vec.push_back((str[i] & 0x7f));
+            i++;
+        } else if ((uint8_t)str[i] <= 0xdf && i + 1 < len) {    // 110xxxxxx
+            ch1 = (str[i] >> 2) & 0x07;
+            ch2 = (str[i + 1] & 0x3f) | ((str[i] & 0x03) << 6);
+            tmp = (((uint16_t(ch1) & 0x00ff) << 8) | (uint16_t(ch2) & 0x00ff));
+            vec.push_back(tmp);
+            i += 2;
+        } else if ((uint8_t)str[i] <= 0xef && i + 2 < len) {
+            // 方法一
+            // ch1 = ((uint8_t)str[i] << 4) | ((str[i + 1] >> 2) & 0x0f );
+            // ch2 = (((uint8_t)str[i + 1] << 6) & 0xc0) | (str[i+2] & 0x3f);
+            // tmp = (((uint16_t(ch1) & 0x00ff ) << 8) | (uint16_t(ch2) & 0x00ff));
+            
+            // 方法二
+            tmp = (uint8_t)(str[i]) & 0x0f;
+
+            tmp <<= 6;
+            tmp |= (uint8_t)(str[i + 1]) & 0x3f;
+
+            tmp <<= 6;
+            tmp |= (uint8_t)(str[i + 2]) & 0x3f;
+
+            vec.push_back(tmp);
+            i += 3;
+        } else {
+            return false;
+        }
+    }
+
+    return true;
+}
+```

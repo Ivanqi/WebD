@@ -13,6 +13,9 @@ TemplateReplace::TemplateReplace(const map<string, string>& paramlist)
 
     resolverLeftUni_ = TransCode::decode(resolverLeft_);
     resolverRigthUni_ = TransCode::decode(resolverRigth_);
+
+    buildSaveBc(resolverLeftUni_, resolverLeft_);
+    buildSaveBc(resolverRigthUni_, resolverRigth_);
 }
 
 
@@ -21,6 +24,13 @@ TemplateReplace::~TemplateReplace()
     if (root_) {
         deleteNode(root_);
     }
+}
+
+void TemplateReplace::buildSaveBc(Unicode patternUni, std::string pattern) 
+{
+    vector<int> tmp(BM_MAX_SIZE, -1);
+    generateBc(patternUni, &tmp);
+    saveBc_[pattern] = tmp;
 }
 
 const TrieNode* TemplateReplace::find(Unicode::const_iterator begin, Unicode::const_iterator end) const
@@ -189,7 +199,15 @@ string TemplateReplace::matchReplace(string text)
     return text;
 }
 
-// 时间复杂度: O(n ^ 2)
+/**
+ * 
+ * BM字符匹配
+ *  1. 把字符串转换成unicode编码
+ *  2. 然后循环检测'{{' 或 '}}'的存在
+ *  3. 通过BM字符串算法，进行替换
+ * 
+ * 时间复杂度: O(n ^ 2)
+ */
 string TemplateReplace::matchByBm(string text)
 {
     bool flag = true;
@@ -375,30 +393,32 @@ int TemplateReplace::moveByGs(int j, int pLen, int *suffix, bool *prefix)
     return pLen;
 }
 
-// bm 字符串替换算法
+
+/**
+ * BM 字符串替换算法
+ *  1. 求出坏字符规则集，当字符串不匹配时，通过坏字符规则移动字符位置
+ *  2. 构建 suffix 和 prefix 数组,得到
+ */
 int TemplateReplace::BM(Unicode sUni, Unicode patternUni, std::string pattern)
 {
+    std::map<std::string, std::vector<int>>::iterator it;
+    it = saveBc_.find(pattern);
+    if (it == saveBc_.end()) return -1;
+
     vector<int> bc;
-    if (saveBc_.find(pattern) != saveBc_.end()) {
-        bc = saveBc_.find(pattern)->second;
-    } else {
-        vector<int> tmp(BM_MAX_SIZE, -1);
-        bc = tmp;
-        generateBc(patternUni, &bc);
-    }
+    bc = it->second;
 
     int sLen = sUni.size();
     int pLen = patternUni.size();
     int suffix[pLen];
     bool prefix[pLen];
 
-
     generateGS(patternUni, suffix, prefix);
 
     int i = 0;  
     while (i <= sLen - pLen) {
-        int j;                                      // j表示主串与模式串匹配的第一个字符
-        for (j = pLen - 1; j >= 0; j--) {           // 模式串从后往前匹配
+        int j;                                       // j表示主串与模式串匹配的第一个字符
+        for (j = pLen - 1; j >= 0; j--) {            // 模式串从后往前匹配
             if (sUni[i + j] != patternUni[j]) break; // 坏字符对应模式串的下标是j
         }
 
@@ -423,6 +443,7 @@ int TemplateReplace::calcUnicodeLen(Unicode::const_iterator uni)
     return calcUnicodeLen(ui);
 }
 
+// 计算unicode编码的长度
 int TemplateReplace::calcUnicodeLen(TrieKey ui) {
     if (ui <= 0x7f) {
         return 1;
