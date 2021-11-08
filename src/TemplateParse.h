@@ -146,6 +146,12 @@ namespace webd
                 return true;
             }
 
+            /**
+             * 文件解析
+             *  1. 读取目标文件
+             *  2. 目标文件的特定标志进行BM字符串替换
+             *  3. 返回替换后的内容
+             */
             bool parse(std::string& filename, std::string& content, std::string& suffix)
             {
                 if (filename == "/") {
@@ -167,8 +173,10 @@ namespace webd
 
                 Buffer buf = tempInfo->content;
 
+                // 获取所有内容
                 content = buf.retrieveAllAsString();
 
+                // 判断 suffix 是否存在
                 if (allowMimeType_.find(suffix) != allowMimeType_.end()) {
                     TemplateReplace replace(paramlist_);
                     content = replace.matchByBm(content);
@@ -180,6 +188,7 @@ namespace webd
             
         
         private:
+            // 读取文件
             bool readFile(Buffer& content, const std::string path)
             {
                 std::ifstream fin(path, std::ios::binary);

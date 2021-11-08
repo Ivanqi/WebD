@@ -50,8 +50,8 @@ namespace webd
     class TemplateReplace
     {
         private:
-            std::string resolverLeft_{"{{"};
-            std::string resolverRigth_{"}}"};
+            std::string resolverLeft_{"{{"};    // 左标签
+            std::string resolverRigth_{"}}"};   // 右标签
             bool leftFlag_{false};
             const map<string, string> field_;
             Unicode resolverLeftUni_;
