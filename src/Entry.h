@@ -83,7 +83,7 @@ namespace webd
             void setLogging(string logDir, const string& logLevel);
 
             // 设置文件描述符的上限
-            bool ulimit(const int limitNum = ULIMITNUM);
+            bool setUlimit(const int limitNum);
     };
 };
 
