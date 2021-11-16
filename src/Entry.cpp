@@ -63,7 +63,7 @@ void Entry::start(char* argv[])
 
 void Entry::onRequest(const HttpRequest& req, HttpResponse* resp)
 {
-    std::string context;
+    std::string context{"hello"};
     string suffix;
 
     string path = req.path();
@@ -73,19 +73,19 @@ void Entry::onRequest(const HttpRequest& req, HttpResponse* resp)
         suffix = path.substr(found);
     }
 
-    bool ret = false;
-    {
-        MutexLockGuard lock(mutex_);
-        parse_->setParamlist(req.paramlist());
-        ret = parse_->parse(path, context, suffix);
-    } 
+    // bool ret = false;
+    // {
+    //     MutexLockGuard lock(mutex_);
+    //     parse_->setParamlist(req.paramlist());
+    //     ret = parse_->parse(path, context, suffix);
+    // } 
 
     string ContentType = mimeType_["default"];
-    if (mimeType_.find(suffix) != mimeType_.end()) {
-        ContentType = mimeType_[suffix];
-    }
+    // if (mimeType_.find(suffix) != mimeType_.end()) {
+    //     ContentType = mimeType_[suffix];
+    // }
 
-    if (ret) {
+    // if (ret) {
         resp->setStatusCode(HttpResponse::k200OK);
         resp->setStatusMessage("OK");
         resp->setContentType(ContentType);
@@ -96,11 +96,11 @@ void Entry::onRequest(const HttpRequest& req, HttpResponse* resp)
             resp->setCloseConnection(true);
         }
 
-    } else {
-        resp->setStatusCode(HttpResponse::k404NotFound);
-        resp->setStatusMessage("Not Found");
-        resp->setCloseConnection(true);
-    }
+    // } else {
+    //     resp->setStatusCode(HttpResponse::k404NotFound);
+    //     resp->setStatusMessage("Not Found");
+    //     resp->setCloseConnection(true);
+    // }
 }
 
 void Entry::asyncOutput(const char *msg, int len)
