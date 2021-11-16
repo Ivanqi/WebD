@@ -12,3 +12,5 @@ log_level=info
 log_dir=../logs/logger
 # 服务模式 默认: web。 其他模式:cgi
 server_mode=web
+# 设置文件描述符数量
+ulimit_num=1024

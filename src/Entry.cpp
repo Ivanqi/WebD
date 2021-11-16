@@ -9,7 +9,6 @@
 #include "networker/base/AsyncLogging.h"
 #include "src/Configure.h"
 
-
 using namespace webd;
 using namespace std::placeholders;
 
@@ -27,6 +26,7 @@ void Entry::start(char* argv[])
     string logLevel = conf.getConf("log_level", "info");
     string logDir = conf.getConf("log_dir");
     string serverMode = conf.getConf("server_mode", "web");
+    int ulimitNum = atoi(conf.getConf("ulimit_num", ULIMITNUM));
 
     if (webRoot.empty()) {
         printf("Web Root 目录不存在");
@@ -37,12 +37,15 @@ void Entry::start(char* argv[])
        setLogging(logDir, logLevel);
     }
 
+    if (!ulimit(ulimitNum)) {
+        return;
+    }
+
     LOG_INFO << "pid = " << getpid() << ", tid = " << CurrentThread::tid();
 
     parse_->setTempDIr(webRoot);
     parse_->setAllowMimeType(allowMimeType_);
     parse_->preLoading();
-
     
     numTreads = confNumTreads.empty() ? numTreads : ::atoi(confNumTreads.c_str());
 
@@ -59,7 +62,7 @@ void Entry::start(char* argv[])
 
 void Entry::onRequest(const HttpRequest& req, HttpResponse* resp)
 {
-    std::string context;
+    std::string context{"你好"};
     string suffix;
 
     string path = req.path();
@@ -69,19 +72,19 @@ void Entry::onRequest(const HttpRequest& req, HttpResponse* resp)
         suffix = path.substr(found);
     }
 
-    bool ret = false;
-    {
-        MutexLockGuard lock(mutex_);
-        parse_->setParamlist(req.paramlist());
-        ret = parse_->parse(path, context, suffix);
-    } 
+    // bool ret = false;
+    // {
+    //     MutexLockGuard lock(mutex_);
+    //     parse_->setParamlist(req.paramlist());
+    //     ret = parse_->parse(path, context, suffix);
+    // } 
 
     string ContentType = mimeType_["default"];
-    if (mimeType_.find(suffix) != mimeType_.end()) {
-        ContentType = mimeType_[suffix];
-    }
+    // if (mimeType_.find(suffix) != mimeType_.end()) {
+    //     ContentType = mimeType_[suffix];
+    // }
 
-    if (ret) {
+    // if (ret) {
         resp->setStatusCode(HttpResponse::k200OK);
         resp->setStatusMessage("OK");
         resp->setContentType(ContentType);
@@ -92,11 +95,11 @@ void Entry::onRequest(const HttpRequest& req, HttpResponse* resp)
             resp->setCloseConnection(true);
         }
 
-    } else {
-        resp->setStatusCode(HttpResponse::k404NotFound);
-        resp->setStatusMessage("Not Found");
-        resp->setCloseConnection(true);
-    }
+    // } else {
+    //     resp->setStatusCode(HttpResponse::k404NotFound);
+    //     resp->setStatusMessage("Not Found");
+    //     resp->setCloseConnection(true);
+    // }
 }
 
 void Entry::asyncOutput(const char *msg, int len)
@@ -161,4 +164,15 @@ void Entry::setLogging(string logDir, const string& logLevel)
     
     g_asyncLog_.reset(new AsyncLogging(logDir, kRollSize_));
     g_asyncLog_->start();
+}
+
+bool Entry::ulimit(const int limitNum = ULIMITNUM)
+{
+    struct rlimit rl;
+    rl.rlim_cur = rl.rlim_max = limitNum;
+    if (::setrlimit(RLIMIT_NOFILE, &rl) == -1) {
+        LOG_ERROR << "设置文件描述符数量错误";
+        return false;
+    }
+    return true;
 }

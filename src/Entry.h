@@ -15,9 +15,12 @@
 #include <unistd.h>
 #include <iostream>
 #include <memory>
+#include <sys/resource.h>
 
 using namespace networker;
 using namespace networker::net;
+
+#define ULIMITNUM 1024
 
 namespace webd
 {
@@ -77,7 +80,10 @@ namespace webd
 
             Logger::LogLevel getLogLevel(const string& levelStr);
 
-            void setLogging(string logDir, const string& logLevel);  
+            void setLogging(string logDir, const string& logLevel);
+
+            // 设置文件描述符的上限
+            bool ulimit(const int limitNum = ULIMITNUM);
     };
 };
 

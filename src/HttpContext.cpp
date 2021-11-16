@@ -79,8 +79,8 @@ bool HttpContext::parseRequest(Buffer *buf, Timestamp receiveTime)
                     request_->addHeader(buf->peek(), colon, crlf);
                 } else {
                     state_ = kExpectBody;
-                    // state_ = kGotAll;
-                    // hasMore = false;
+                    state_ = kGotAll;
+                    hasMore = false;
                 }
                 buf->retrieveUntil(crlf + 2);
             } else {
