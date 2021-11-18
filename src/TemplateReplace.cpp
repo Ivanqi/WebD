@@ -218,6 +218,8 @@ string TemplateReplace::matchByBm(string text)
     int textLen = text.length();
     int i = 0;
 
+    std::cout << "text: " << text << std::endl;
+
     while (flag) {
         if (textLen - i <= 0) flag = false;
         Unicode textUni = TransCode::decode(text);
@@ -245,10 +247,12 @@ string TemplateReplace::matchByBm(string text)
                 }
 
                 string tmpStr = text.substr(leftPos + leftLen, rightPos - leftPos - rightLen);
+
                 tmpStr = StringUtil::Trim(tmpStr, ' ');
                 if (field_.find(tmpStr) != field_.end()) {
                     tmpStr = field_.at(tmpStr);;
                 }
+                std::cout << "tmpStr: " << tmpStr << " leftPos: " << leftPos << " rightPos: " << rightPos << std::endl;
                 text.replace(leftPos, rightPos - leftPos + rightLen, tmpStr.c_str());
                 i = 0;
                 leftFlag_ = false;
