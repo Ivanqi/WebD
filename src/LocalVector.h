@@ -57,11 +57,6 @@ class LocalVector
             }
         }
 
-        void replace(const_iterator dst, size_t dstLen, size_t movePos)
-        {
-            // if ()
-        }
-
     public:
         LocalVector<T>& operator = (const LocalVector<T>& vec)
         {
